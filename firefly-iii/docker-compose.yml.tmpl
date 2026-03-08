@@ -1,0 +1,80 @@
+services:
+  firefly-iii:
+    image: fireflyiii/core:version-6.2
+    container_name: firefly-iii
+    restart: unless-stopped
+    ports:
+      - "{{index . "web_port"}}:8080"
+    environment:
+      - APP_KEY={{index . "app_key"}}
+      - APP_URL={{index . "routing_url"}}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=firefly-iii-db
+      - DB_PORT=5432
+      - DB_DATABASE=firefly
+      - DB_USERNAME=firefly
+      - DB_PASSWORD={{index . "db_password"}}
+      - TZ={{index . "timezone"}}
+      - TRUSTED_PROXIES=**
+    volumes:
+      - {{index . "data_dir"}}/upload:/var/www/html/storage/upload
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          pids: 200
+    depends_on:
+      firefly-iii-db:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+  firefly-iii-db:
+    image: postgres:16-alpine
+    container_name: firefly-iii-db
+    restart: unless-stopped
+    shm_size: '256m'
+    environment:
+      - POSTGRES_DB=firefly
+      - POSTGRES_USER=firefly
+      - POSTGRES_PASSWORD={{index . "db_password"}}
+      - TZ={{index . "timezone"}}
+    volumes:
+      - {{index . "data_dir"}}/db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U firefly"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          pids: 100
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+networks:
+  {{index . "network"}}:
+    external: true

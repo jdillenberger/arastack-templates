@@ -1,0 +1,77 @@
+services:
+  ghost:
+    image: ghost:5
+    container_name: ghost
+    restart: unless-stopped
+    ports:
+      - "{{index . "web_port"}}:2368"
+    environment:
+      - url={{index . "routing_url"}}
+      - TZ={{index . "timezone"}}
+      - database__client=mysql
+      - database__connection__host=ghost-db
+      - database__connection__user=ghost
+      - database__connection__password={{index . "db_password"}}
+      - database__connection__database=ghost
+    volumes:
+      - {{index . "data_dir"}}/content:/var/lib/ghost/content
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:2368/', r => process.exit(r.statusCode < 400 ? 0 : 1)).on('error', () => process.exit(1))\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          pids: 200
+    depends_on:
+      ghost-db:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+  ghost-db:
+    image: mysql:8.0
+    container_name: ghost-db
+    restart: unless-stopped
+    environment:
+      - TZ={{index . "timezone"}}
+      - MYSQL_ROOT_PASSWORD={{index . "db_password"}}
+      - MYSQL_DATABASE=ghost
+      - MYSQL_USER=ghost
+      - MYSQL_PASSWORD={{index . "db_password"}}
+    volumes:
+      - {{index . "data_dir"}}/db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          pids: 200
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+networks:
+  {{index . "network"}}:
+    external: true

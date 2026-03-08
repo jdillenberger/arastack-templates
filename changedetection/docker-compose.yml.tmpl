@@ -1,0 +1,36 @@
+services:
+  changedetection:
+    image: ghcr.io/dgtlmoon/changedetection.io:0.49
+    container_name: changedetection
+    restart: unless-stopped
+    ports:
+      - "{{index . "web_port"}}:5000"
+    environment:
+      - TZ={{index . "timezone"}}
+      - BASE_URL={{index . "routing_url"}}
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          pids: 200
+    volumes:
+      - {{index . "data_dir"}}/data:/datastore
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:5000/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - {{index . "network"}}
+
+networks:
+  {{index . "network"}}:
+    external: true

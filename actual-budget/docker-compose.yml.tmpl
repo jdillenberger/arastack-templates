@@ -1,0 +1,35 @@
+services:
+  actual-budget:
+    image: actualbudget/actual-server:25.3.1
+    container_name: actual-budget
+    restart: unless-stopped
+    ports:
+      - "{{index . "web_port"}}:5006"
+    environment:
+      - TZ={{index . "timezone"}}
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          pids: 200
+    volumes:
+      - {{index . "data_dir"}}/data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:5006/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - {{index . "network"}}
+
+networks:
+  {{index . "network"}}:
+    external: true

@@ -1,0 +1,76 @@
+services:
+  wordpress:
+    image: wordpress:6.7
+    container_name: wordpress
+    restart: unless-stopped
+    ports:
+      - "{{index . "web_port"}}:80"
+    environment:
+      - TZ={{index . "timezone"}}
+      - WORDPRESS_DB_HOST=wordpress-db
+      - WORDPRESS_DB_USER=wordpress
+      - WORDPRESS_DB_PASSWORD={{index . "db_password"}}
+      - WORDPRESS_DB_NAME=wordpress
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/wp-login.php || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          pids: 200
+    volumes:
+      - {{index . "data_dir"}}/html:/var/www/html
+    depends_on:
+      wordpress-db:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+  wordpress-db:
+    image: mariadb:11.4
+    container_name: wordpress-db
+    restart: unless-stopped
+    shm_size: '256m'
+    environment:
+      - TZ={{index . "timezone"}}
+      - MYSQL_ROOT_PASSWORD={{index . "db_password"}}
+      - MYSQL_DATABASE=wordpress
+      - MYSQL_USER=wordpress
+      - MYSQL_PASSWORD={{index . "db_password"}}
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          pids: 100
+    volumes:
+      - {{index . "data_dir"}}/db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+networks:
+  {{index . "network"}}:
+    external: true

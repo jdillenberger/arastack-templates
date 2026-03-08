@@ -1,0 +1,32 @@
+name: changedetection
+description: Self-hosted website change detection and monitoring
+category: monitoring
+version: "0.49"
+ports:
+  - host: 5000
+    container: 5000
+    protocol: tcp
+    description: Web UI
+    value_name: web_port
+values:
+  - name: web_port
+    description: Web UI port
+    default: "5000"
+  - name: timezone
+    description: Timezone
+    default: "UTC"
+dependencies:
+  - docker
+volumes:
+  - name: data
+    container: /datastore
+    description: Changedetection data
+health_check:
+  url: "http://localhost:{{.web_port}}"
+  interval: 30s
+backup:
+  paths:
+    - data
+requirements:
+  min_ram: 256M
+  arch: [amd64, arm64]

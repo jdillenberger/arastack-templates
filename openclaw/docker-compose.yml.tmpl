@@ -1,0 +1,76 @@
+services:
+  openclaw-gateway:
+    image: ghcr.io/openclaw/openclaw:latest
+    container_name: openclaw-gateway
+    restart: unless-stopped
+    init: true
+    ports:
+      - "{{index . "gateway_port"}}:18789"
+      - "{{index . "bridge_port"}}:18790"
+    environment:
+      - HOME=/home/node
+      - TERM=xterm-256color
+      - TZ={{index . "timezone"}}
+      - OPENCLAW_GATEWAY_TOKEN={{index . "gateway_token"}}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:18789/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          pids: 200
+    volumes:
+      - {{index . "data_dir"}}/config:/home/node/.openclaw
+      - {{index . "data_dir"}}/workspace:/home/node/.openclaw/workspace
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+  openclaw-cli:
+    image: ghcr.io/openclaw/openclaw:latest
+    container_name: openclaw-cli
+    restart: unless-stopped
+    network_mode: "service:openclaw-gateway"
+    stdin_open: true
+    tty: true
+    cap_drop:
+      - NET_RAW
+      - NET_ADMIN
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          pids: 200
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - HOME=/home/node
+      - TERM=xterm-256color
+      - TZ={{index . "timezone"}}
+      - OPENCLAW_GATEWAY_TOKEN={{index . "gateway_token"}}
+      - BROWSER=echo
+    volumes:
+      - {{index . "data_dir"}}/config:/home/node/.openclaw
+      - {{index . "data_dir"}}/workspace:/home/node/.openclaw/workspace
+    depends_on:
+      openclaw-gateway:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  {{index . "network"}}:
+    external: true

@@ -1,0 +1,55 @@
+name: obsidian
+description: Obsidian note-taking app with LiveSync CouchDB backend
+category: productivity
+version: "latest"
+ports:
+  - host: 3004
+    container: 3000
+    protocol: tcp
+    description: Obsidian Web UI
+    value_name: web_port
+  - host: 5984
+    container: 5984
+    protocol: tcp
+    description: CouchDB HTTP API (LiveSync)
+    value_name: couchdb_port
+values:
+  - name: web_port
+    description: Obsidian Web UI port
+    default: "3004"
+  - name: couchdb_port
+    description: CouchDB port for LiveSync
+    default: "5984"
+  - name: admin_password
+    description: CouchDB admin password
+    secret: true
+    auto_gen: password
+  - name: timezone
+    description: Timezone
+    default: "UTC"
+dependencies:
+  - docker
+volumes:
+  - name: config
+    container: /config
+    description: Obsidian configuration and vaults
+  - name: couchdb-data
+    container: /opt/couchdb/data
+    description: CouchDB data
+  - name: couchdb-config
+    container: /opt/couchdb/etc/local.d
+    description: CouchDB configuration
+health_check:
+  url: "http://localhost:{{.web_port}}"
+  interval: 60s
+backup:
+  paths:
+    - config
+    - couchdb-data
+    - couchdb-config
+requirements:
+  min_ram: 1G
+  min_disk: 5G
+  arch: [amd64, arm64]
+lint_ignore:
+  - floating-image-tag  # linuxserver uses date-based tags only

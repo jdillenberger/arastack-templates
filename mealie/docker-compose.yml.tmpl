@@ -1,0 +1,39 @@
+services:
+  mealie:
+    image: ghcr.io/mealie-recipes/mealie:v2.6.0
+    container_name: mealie
+    restart: unless-stopped
+    ports:
+      - "{{index . "web_port"}}:9000"
+    environment:
+      - TZ={{index . "timezone"}}
+      - ALLOW_SIGNUP=false
+      - BASE_URL={{index . "routing_url"}}
+      - MAX_WORKERS=1
+      - WEB_CONCURRENCY=1
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          pids: 200
+    volumes:
+      - {{index . "data_dir"}}/data:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:9000/api/app/about\")' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - {{index . "network"}}
+
+networks:
+  {{index . "network"}}:
+    external: true

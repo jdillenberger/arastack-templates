@@ -1,0 +1,51 @@
+name: openclaw
+description: AI coding assistant with gateway and CLI interface
+category: dev
+version: "latest"
+ports:
+  - host: 18789
+    container: 18789
+    protocol: tcp
+    description: Gateway Web UI
+    value_name: gateway_port
+  - host: 18790
+    container: 18790
+    protocol: tcp
+    description: Bridge
+    value_name: bridge_port
+values:
+  - name: gateway_port
+    description: Gateway Web UI port
+    default: "18789"
+  - name: bridge_port
+    description: Bridge port
+    default: "18790"
+  - name: gateway_token
+    description: Gateway authentication token
+    secret: true
+    auto_gen: password
+  - name: timezone
+    description: Timezone
+    default: "UTC"
+dependencies:
+  - docker
+volumes:
+  - name: config
+    container: /home/node/.openclaw
+    description: OpenClaw configuration
+  - name: workspace
+    container: /home/node/.openclaw/workspace
+    description: OpenClaw workspace
+health_check:
+  url: "http://localhost:{{.gateway_port}}/healthz"
+  interval: 30s
+backup:
+  paths:
+    - config
+    - workspace
+requirements:
+  min_ram: 2G
+  arch: [amd64, arm64]
+lint_ignore:
+  - floating-image-tag    # no semver releases available
+  - missing-healthcheck   # cli is an interactive TTY container

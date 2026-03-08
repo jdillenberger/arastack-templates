@@ -1,0 +1,57 @@
+name: mattermost
+description: Open source team messaging platform
+category: social
+version: "11.4.2"
+ports:
+  - host: 8065
+    container: 8065
+    protocol: tcp
+    description: Web UI
+    value_name: web_port
+values:
+  - name: web_port
+    description: Web UI port
+    default: "8065"
+  - name: db_password
+    description: PostgreSQL password
+    secret: true
+    auto_gen: password
+  - name: timezone
+    description: Timezone
+    default: "UTC"
+dependencies:
+  - docker
+volumes:
+  - name: config
+    container: /mattermost/config
+    description: Mattermost configuration
+  - name: data
+    container: /mattermost/data
+    description: Mattermost data
+  - name: logs
+    container: /mattermost/logs
+    description: Mattermost logs
+  - name: plugins
+    container: /mattermost/plugins
+    description: Mattermost plugins
+  - name: client-plugins
+    container: /mattermost/client/plugins
+    description: Mattermost client plugins
+  - name: db
+    container: /var/lib/postgresql/data
+    description: PostgreSQL data
+health_check:
+  url: "http://localhost:{{.web_port}}"
+  interval: 30s
+backup:
+  paths:
+    - config
+    - data
+    - plugins
+    - db
+  pre_hook: "docker exec mattermost-db pg_dumpall -U mattermost > /tmp/mattermost-db-backup.sql"
+  post_hook: "rm -f /tmp/mattermost-db-backup.sql"
+requirements:
+  min_ram: 512M
+  min_disk: 5G
+  arch: [amd64]

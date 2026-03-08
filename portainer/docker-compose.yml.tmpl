@@ -1,0 +1,35 @@
+services:
+  portainer:
+    image: portainer/portainer-ce:2.39.0
+    container_name: portainer
+    restart: unless-stopped
+    ports:
+      - "{{index . "https_port"}}:9443"
+      - "{{index . "http_port"}}:9000"
+    environment:
+      - TZ={{index . "timezone"}}
+    # Portainer uses a scratch base image with no shell or utilities,
+    # so container healthchecks are not possible.
+    healthcheck:
+      disable: true
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          pids: 200
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - {{index . "data_dir"}}:/data
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+networks:
+  {{index . "network"}}:
+    external: true
