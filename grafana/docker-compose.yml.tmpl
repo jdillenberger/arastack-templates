@@ -10,6 +10,9 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD={{index . "admin_password"}}
     volumes:
       - {{index . "data_dir"}}/grafana-data:/var/lib/grafana
+      - ./config/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./config/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
       grafana-prometheus:
         condition: service_healthy
@@ -54,6 +57,43 @@ services:
         limits:
           memory: 512M
           pids: 200
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - {{index . "network"}}
+
+  grafana-node-exporter:
+    image: prom/node-exporter:v1.9.0
+    container_name: grafana-node-exporter
+    restart: unless-stopped
+    pid: host
+    environment:
+      - TZ={{index . "timezone"}}
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--path.rootfs=/host/root"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host/root:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9100/metrics || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          pids: 100
     logging:
       driver: json-file
       options:

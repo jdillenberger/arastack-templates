@@ -35,6 +35,15 @@ backup:
   paths:
     - grafana-data
     - prometheus-data
+routing:
+  container_port: 3000
+post_deploy_info:
+  access_url: "http://localhost:{{.web_port}}"
+  credentials: "Username: admin / Password: (generated, see .env)"
+  notes:
+    - "Prometheus datasource is pre-configured"
+    - "Open the 'Arastack Overview' dashboard for server and traefik metrics"
+    - "Traefik panels require traefik to be deployed with metrics enabled"
 requirements:
   min_ram: 512M
   min_disk: 5G

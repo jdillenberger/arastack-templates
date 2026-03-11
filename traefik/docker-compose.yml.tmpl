@@ -20,6 +20,7 @@ services:
       - "--providers.docker.network={{index . "network"}}"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
+      - "--metrics.prometheus=true"
       - "--providers.file.directory=/dynamic"
 {{- if ne (index . "acme_email") ""}}
       - "--certificatesresolvers.letsencrypt.acme.email={{index . "acme_email"}}"
