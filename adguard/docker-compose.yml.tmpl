@@ -5,7 +5,6 @@ services:
     restart: unless-stopped
     ports:
       - "{{index . "web_port"}}:3000/tcp"
-      - "{{index . "admin_port"}}:80/tcp"
       - "{{index . "dns_port"}}:53/tcp"
       - "{{index . "dns_port"}}:53/udp"
     environment:

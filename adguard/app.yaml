@@ -3,16 +3,11 @@ description: Network-wide ad and tracker blocking DNS server
 category: infra
 version: "v0.107.72"
 ports:
-  - host: 3000
+  - host: 80
     container: 3000
     protocol: tcp
-    description: Web UI (initial setup)
+    description: Web UI (setup and admin)
     value_name: web_port
-  - host: 80
-    container: 80
-    protocol: tcp
-    description: Web UI (after setup)
-    value_name: admin_port
   - host: 53
     container: 53
     protocol: tcp
@@ -26,9 +21,6 @@ ports:
 values:
   - name: web_port
     description: Web UI port
-    default: "3000"
-  - name: admin_port
-    description: Web UI port (after initial setup)
     default: "80"
   - name: dns_port
     description: DNS port
