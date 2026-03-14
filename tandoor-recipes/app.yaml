@@ -1,0 +1,51 @@
+name: tandoor-recipes
+description: Self-hosted recipe manager and meal planner
+category: productivity
+version: "1.5.27"
+ports:
+  - host: 8088
+    container: 8080
+    protocol: tcp
+    description: Web UI
+    value_name: web_port
+values:
+  - name: web_port
+    description: Web UI port
+    default: "8088"
+  - name: secret_key
+    description: Django secret key
+    secret: true
+    auto_gen: password
+  - name: db_password
+    description: PostgreSQL password
+    secret: true
+    auto_gen: password
+  - name: timezone
+    description: Timezone
+    default: "UTC"
+dependencies:
+  - docker
+volumes:
+  - name: staticfiles
+    container: /opt/recipes/staticfiles
+    description: Static files
+  - name: mediafiles
+    container: /opt/recipes/mediafiles
+    description: Media files
+  - name: db
+    container: /var/lib/postgresql/data
+    description: PostgreSQL data
+health_check:
+  url: "http://localhost:{{.web_port}}"
+  interval: 30s
+backup:
+  paths:
+    - staticfiles
+    - mediafiles
+    - db
+  pre_hook: "docker exec tandoor-db pg_dumpall -U tandoor > /tmp/tandoor-db-backup.sql"
+  post_hook: "rm -f /tmp/tandoor-db-backup.sql"
+requirements:
+  min_ram: 512M
+  min_disk: 5G
+  arch: [amd64, arm64]

@@ -1,0 +1,157 @@
+services:
+  outline:
+    image: docker.getoutline.com/outlinewiki/outline:0.82.0
+    container_name: outline
+    restart: unless-stopped
+    ports:
+      - "{{index . "web_port"}}:3000"
+    environment:
+      - DATABASE_URL=postgres://outline:{{index . "db_password"}}@outline-db:5432/outline
+      - REDIS_URL=redis://outline-redis:6379
+      - URL={{index . "routing_url"}}
+      - SECRET_KEY={{index . "secret_key"}}
+      - UTILS_SECRET={{index . "utils_secret"}}
+      - FILE_STORAGE=s3
+      - FILE_STORAGE_UPLOAD_MAX_SIZE=26214400
+      - AWS_ACCESS_KEY_ID=outline
+      - AWS_SECRET_ACCESS_KEY={{index . "minio_root_password"}}
+      - AWS_S3_UPLOAD_BUCKET_URL=http://outline-minio:9000
+      - AWS_S3_UPLOAD_BUCKET_NAME=outline
+      - AWS_S3_FORCE_PATH_STYLE=true
+      - AWS_REGION=us-east-1
+      - TZ={{index . "timezone"}}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/_health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          pids: 200
+    depends_on:
+      outline-db:
+        condition: service_healthy
+      outline-redis:
+        condition: service_healthy
+      outline-minio:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=storage-data,redis"
+
+  outline-db:
+    image: postgres:16-alpine
+    container_name: outline-db
+    restart: unless-stopped
+    shm_size: '256m'
+    environment:
+      - POSTGRES_DB=outline
+      - POSTGRES_USER=outline
+      - POSTGRES_PASSWORD={{index . "db_password"}}
+      - TZ={{index . "timezone"}}
+    volumes:
+      - {{index . "data_dir"}}/db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U outline -d outline"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          pids: 100
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.dump.driver=postgres"
+      - "arabackup.dump.user=outline"
+      - "arabackup.dump.password-env=POSTGRES_PASSWORD"
+      - "arabackup.dump.database=outline"
+
+  outline-redis:
+    image: redis:7-alpine
+    container_name: outline-redis
+    restart: unless-stopped
+    environment:
+      - TZ={{index . "timezone"}}
+    volumes:
+      - {{index . "data_dir"}}/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          pids: 50
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+  outline-minio:
+    image: minio/minio:latest
+    container_name: outline-minio
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    environment:
+      - MINIO_ROOT_USER=outline
+      - MINIO_ROOT_PASSWORD={{index . "minio_root_password"}}
+      - TZ={{index . "timezone"}}
+    volumes:
+      - {{index . "data_dir"}}/storage-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/live || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          pids: 100
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+networks:
+  {{index . "network"}}:
+    external: true

@@ -1,0 +1,91 @@
+services:
+  photoprism:
+    image: photoprism/photoprism:240915
+    container_name: photoprism
+    restart: unless-stopped
+    ports:
+      - "{{index . "web_port"}}:2342"
+    environment:
+      - TZ={{index . "timezone"}}
+      - PHOTOPRISM_ADMIN_PASSWORD={{index . "admin_password"}}
+      - PHOTOPRISM_SITE_URL={{index . "routing_url"}}
+      - PHOTOPRISM_DATABASE_DRIVER=mysql
+      - PHOTOPRISM_DATABASE_SERVER=photoprism-db:3306
+      - PHOTOPRISM_DATABASE_NAME=photoprism
+      - PHOTOPRISM_DATABASE_USER=photoprism
+      - PHOTOPRISM_DATABASE_PASSWORD={{index . "db_password"}}
+      - PHOTOPRISM_ORIGINALS_LIMIT=5000
+      - PHOTOPRISM_HTTP_COMPRESSION=gzip
+    volumes:
+      - {{if index . "photos_path"}}{{index . "photos_path"}}{{else}}{{index . "data_dir"}}/originals{{end}}:/photoprism/originals
+      - {{index . "data_dir"}}/storage:/photoprism/storage
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:2342/api/v1/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          pids: 200
+    depends_on:
+      photoprism-db:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=storage"
+  photoprism-db:
+    image: mariadb:11.4
+    container_name: photoprism-db
+    restart: unless-stopped
+    shm_size: '256m'
+    environment:
+      - TZ={{index . "timezone"}}
+      - MYSQL_ROOT_PASSWORD={{index . "db_password"}}
+      - MYSQL_DATABASE=photoprism
+      - MYSQL_USER=photoprism
+      - MYSQL_PASSWORD={{index . "db_password"}}
+    volumes:
+      - {{index . "data_dir"}}/db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          pids: 100
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.dump.driver=mariadb"
+      - "arabackup.dump.user=photoprism"
+      - "arabackup.dump.password-env=MYSQL_PASSWORD"
+      - "arabackup.dump.database=photoprism"
+networks:
+  {{index . "network"}}:
+    external: true

@@ -1,0 +1,111 @@
+services:
+  netbird-management:
+    image: netbirdio/management:0.36.5
+    container_name: netbird-management
+    restart: unless-stopped
+    ports:
+      - "{{index . "web_port"}}:443"
+    command: ["--port", "443", "--log-file", "console", "--disable-anonymous-metrics", "--single-account-mode-domain={{index . "domain"}}"]
+    environment:
+      - TZ={{index . "timezone"}}
+    volumes:
+      - {{index . "data_dir"}}/management:/var/lib/netbird
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:443/api/accounts || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          pids: 200
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=management"
+  netbird-signal:
+    image: netbirdio/signal:0.36.5
+    container_name: netbird-signal
+    restart: unless-stopped
+    ports:
+      - "{{index . "signal_port"}}:10000"
+    environment:
+      - TZ={{index . "timezone"}}
+    healthcheck:
+      test: ["CMD-SHELL", "kill -0 1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          pids: 100
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+    labels:
+      - "arabackup.enable=false"
+  netbird-coturn:
+    image: coturn/coturn:4.6
+    container_name: netbird-coturn
+    restart: unless-stopped
+    ports:
+      - "{{index . "stun_port"}}:3478/udp"
+    command:
+      - -n
+      - --log-file=stdout
+      - --min-port=49152
+      - --max-port=65535
+      - --realm={{index . "domain"}}
+      - --external-ip=$$(detect-external-ip)
+      - --listening-port=3478
+    environment:
+      - TZ={{index . "timezone"}}
+    cap_add:
+      - NET_ADMIN
+    healthcheck:
+      test: ["CMD-SHELL", "kill -0 1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          pids: 100
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+    labels:
+      - "arabackup.enable=false"
+networks:
+  {{index . "network"}}:
+    external: true

@@ -1,0 +1,35 @@
+name: loki
+description: Log aggregation system by Grafana
+category: infra
+version: "3.4.2"
+ports:
+  - host: 3110
+    container: 3100
+    protocol: tcp
+    description: HTTP API
+    value_name: web_port
+values:
+  - name: web_port
+    description: HTTP API port
+    default: "3110"
+  - name: timezone
+    description: Timezone
+    default: "UTC"
+dependencies:
+  - docker
+volumes:
+  - name: data
+    container: /loki
+    description: Loki data
+health_check:
+  url: "http://localhost:{{.web_port}}/ready"
+  interval: 30s
+backup:
+  paths:
+    - data
+requirements:
+  min_ram: 256M
+  arch: [amd64, arm64]
+post_deploy_info:
+  notes:
+    - "Add Loki as a datasource in Grafana using http://loki:3100"

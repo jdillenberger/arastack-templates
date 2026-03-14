@@ -1,0 +1,52 @@
+name: photoprism
+description: AI-powered photo management
+category: media
+version: "240915"
+ports:
+  - host: 2342
+    container: 2342
+    protocol: tcp
+    description: Web UI
+    value_name: web_port
+values:
+  - name: web_port
+    description: Web UI port
+    default: "2342"
+  - name: admin_password
+    description: PhotoPrism admin password
+    secret: true
+    auto_gen: password
+  - name: db_password
+    description: MariaDB password
+    secret: true
+    auto_gen: password
+  - name: photos_path
+    description: Path to photo library on host
+  - name: timezone
+    description: Timezone
+    default: "UTC"
+dependencies:
+  - docker
+volumes:
+  - name: storage
+    container: /photoprism/storage
+    description: PhotoPrism storage (cache, thumbnails, sidecar files)
+  - name: db
+    container: /var/lib/mysql
+    description: MariaDB data
+health_check:
+  url: "http://localhost:{{.web_port}}/api/v1/status"
+  interval: 60s
+backup:
+  paths:
+    - storage
+    - db
+  pre_hook: "docker exec photoprism-db sh -c 'mariadb-dump -u photoprism -p\"$MYSQL_PASSWORD\" photoprism' > /tmp/photoprism-db-backup.sql"
+  post_hook: "rm -f /tmp/photoprism-db-backup.sql"
+requirements:
+  min_ram: 2G
+  min_disk: 10G
+  arch: [amd64, arm64]
+post_deploy_info:
+  access_url: "http://localhost:{{.web_port}}"
+  credentials: "Username: admin / Password: (generated, see .env)"

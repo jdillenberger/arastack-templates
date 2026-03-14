@@ -1,0 +1,51 @@
+name: netbird
+description: Self-hosted VPN management server with peer-to-peer connectivity
+category: networking
+version: "0.36.5"
+ports:
+  - host: 8055
+    container: 443
+    protocol: tcp
+    description: Management API
+    value_name: web_port
+  - host: 10000
+    container: 10000
+    protocol: tcp
+    description: Signal
+    value_name: signal_port
+  - host: 3478
+    container: 3478
+    protocol: udp
+    description: STUN/TURN
+    value_name: stun_port
+values:
+  - name: web_port
+    description: Management API port
+    default: "8055"
+  - name: signal_port
+    description: Signal port
+    default: "10000"
+  - name: stun_port
+    description: STUN/TURN port
+    default: "3478"
+  - name: domain
+    description: Server domain name
+    required: true
+  - name: timezone
+    description: Timezone
+    default: "UTC"
+dependencies:
+  - docker
+volumes:
+  - name: management
+    container: /var/lib/netbird
+    description: Netbird management data
+health_check:
+  url: "http://localhost:{{.web_port}}"
+  interval: 30s
+backup:
+  paths:
+    - management
+requirements:
+  min_ram: 512M
+  arch: [amd64, arm64]

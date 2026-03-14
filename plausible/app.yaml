@@ -1,0 +1,50 @@
+name: plausible
+description: Privacy-focused web analytics
+category: infra
+version: "2.1.4"
+ports:
+  - host: 8050
+    container: 8000
+    protocol: tcp
+    description: Web UI
+    value_name: web_port
+values:
+  - name: web_port
+    description: Web UI port
+    default: "8050"
+  - name: db_password
+    description: PostgreSQL password
+    secret: true
+    auto_gen: password
+  - name: secret_key_base
+    description: Secret key for session encryption
+    secret: true
+    auto_gen: password
+  - name: timezone
+    description: Timezone
+    default: "UTC"
+dependencies:
+  - docker
+volumes:
+  - name: db
+    container: /var/lib/postgresql/data
+    description: PostgreSQL data
+  - name: event-data
+    container: /var/lib/clickhouse
+    description: ClickHouse data
+  - name: event-logs
+    container: /var/log/clickhouse-server
+    description: ClickHouse logs
+health_check:
+  url: "http://localhost:{{.web_port}}/api/health"
+  interval: 30s
+backup:
+  paths:
+    - event-data
+    - event-logs
+  pre_hook: "docker exec plausible-db pg_dumpall -U plausible > /tmp/plausible-db-backup.sql"
+  post_hook: "rm -f /tmp/plausible-db-backup.sql"
+requirements:
+  min_ram: 1G
+  min_disk: 5G
+  arch: [amd64, arm64]

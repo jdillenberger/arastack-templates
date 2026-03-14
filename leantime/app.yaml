@@ -1,0 +1,47 @@
+name: leantime
+description: Open-source project management for non-project managers
+category: productivity
+version: "3.3.5"
+ports:
+  - host: 8095
+    container: 80
+    protocol: tcp
+    description: Web UI
+    value_name: web_port
+values:
+  - name: web_port
+    description: Web UI port
+    default: "8095"
+  - name: db_password
+    description: MariaDB password
+    secret: true
+    auto_gen: password
+  - name: timezone
+    description: Timezone
+    default: "UTC"
+dependencies:
+  - docker
+volumes:
+  - name: userfiles
+    container: /var/www/html/userfiles
+    description: Leantime user uploads
+  - name: plugins
+    container: /var/www/html/app/Plugins
+    description: Leantime plugins
+  - name: db
+    container: /var/lib/mysql
+    description: MariaDB data
+health_check:
+  url: "http://localhost:{{.web_port}}"
+  interval: 60s
+backup:
+  paths:
+    - userfiles
+    - plugins
+    - db
+  pre_hook: "docker exec leantime-db sh -c 'mariadb-dump -u leantime -p\"$MYSQL_PASSWORD\" leantime' > /tmp/leantime-db-backup.sql"
+  post_hook: "rm -f /tmp/leantime-db-backup.sql"
+requirements:
+  min_ram: 512M
+  min_disk: 5G
+  arch: [amd64, arm64]

@@ -1,0 +1,162 @@
+services:
+  authentik:
+    image: ghcr.io/goauthentik/server:2024.12.3
+    container_name: authentik
+    restart: unless-stopped
+    command: server
+    ports:
+      - "{{index . "web_port"}}:9000"
+    environment:
+      - TZ={{index . "timezone"}}
+      - AUTHENTIK_REDIS__HOST=authentik-redis
+      - AUTHENTIK_POSTGRESQL__HOST=authentik-db
+      - AUTHENTIK_POSTGRESQL__USER=authentik
+      - AUTHENTIK_POSTGRESQL__NAME=authentik
+      - AUTHENTIK_POSTGRESQL__PASSWORD={{index . "db_password"}}
+      - AUTHENTIK_SECRET_KEY={{index . "secret_key"}}
+    volumes:
+      - {{index . "data_dir"}}/media:/media
+      - {{index . "data_dir"}}/templates:/templates
+      - {{index . "data_dir"}}/certs:/certs
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/-/health/live/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          pids: 200
+    depends_on:
+      authentik-db:
+        condition: service_healthy
+      authentik-redis:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=media,templates,certs"
+  authentik-worker:
+    image: ghcr.io/goauthentik/server:2024.12.3
+    container_name: authentik-worker
+    restart: unless-stopped
+    command: worker
+    environment:
+      - TZ={{index . "timezone"}}
+      - AUTHENTIK_REDIS__HOST=authentik-redis
+      - AUTHENTIK_POSTGRESQL__HOST=authentik-db
+      - AUTHENTIK_POSTGRESQL__USER=authentik
+      - AUTHENTIK_POSTGRESQL__NAME=authentik
+      - AUTHENTIK_POSTGRESQL__PASSWORD={{index . "db_password"}}
+      - AUTHENTIK_SECRET_KEY={{index . "secret_key"}}
+    volumes:
+      - {{index . "data_dir"}}/media:/media
+      - {{index . "data_dir"}}/templates:/templates
+      - {{index . "data_dir"}}/certs:/certs
+    healthcheck:
+      test: ["CMD", "ak", "healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          pids: 200
+    depends_on:
+      authentik-db:
+        condition: service_healthy
+      authentik-redis:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+  authentik-db:
+    image: postgres:16-alpine
+    container_name: authentik-db
+    restart: unless-stopped
+    shm_size: '256m'
+    environment:
+      - TZ={{index . "timezone"}}
+      - POSTGRES_DB=authentik
+      - POSTGRES_USER=authentik
+      - POSTGRES_PASSWORD={{index . "db_password"}}
+    volumes:
+      - {{index . "data_dir"}}/db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U authentik"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          pids: 100
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.dump.driver=postgres"
+      - "arabackup.dump.user=authentik"
+      - "arabackup.dump.password-env=POSTGRES_PASSWORD"
+      - "arabackup.dump.database=authentik"
+  authentik-redis:
+    image: redis:7-alpine
+    container_name: authentik-redis
+    restart: unless-stopped
+    environment:
+      - TZ={{index . "timezone"}}
+    volumes:
+      - {{index . "data_dir"}}/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          pids: 50
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+networks:
+  {{index . "network"}}:
+    external: true

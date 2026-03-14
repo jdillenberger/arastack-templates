@@ -1,0 +1,50 @@
+name: docmost
+description: Open-source collaborative wiki and documentation platform
+category: productivity
+version: "0.6.2"
+ports:
+  - host: 3006
+    container: 3000
+    protocol: tcp
+    description: Web UI
+    value_name: web_port
+values:
+  - name: web_port
+    description: Web UI port
+    default: "3006"
+  - name: db_password
+    description: PostgreSQL password
+    secret: true
+    auto_gen: password
+  - name: app_secret
+    description: Application secret key
+    secret: true
+    auto_gen: password
+  - name: timezone
+    description: Timezone
+    default: "UTC"
+dependencies:
+  - docker
+volumes:
+  - name: storage
+    container: /app/data/storage
+    description: Docmost storage
+  - name: redis
+    container: /data
+    description: Redis data
+  - name: db
+    container: /var/lib/postgresql/data
+    description: PostgreSQL data
+health_check:
+  url: "http://localhost:{{.web_port}}"
+  interval: 30s
+backup:
+  paths:
+    - storage
+    - db
+  pre_hook: "docker exec docmost-db pg_dumpall -U docmost > /tmp/docmost-db-backup.sql"
+  post_hook: "rm -f /tmp/docmost-db-backup.sql"
+requirements:
+  min_ram: 512M
+  min_disk: 5G
+  arch: [amd64, arm64]

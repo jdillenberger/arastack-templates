@@ -1,0 +1,114 @@
+services:
+  docmost:
+    image: docmost/docmost:0.6.2
+    container_name: docmost
+    restart: unless-stopped
+    ports:
+      - "{{index . "web_port"}}:3000"
+    environment:
+      - APP_URL={{index . "routing_url"}}
+      - APP_SECRET={{index . "app_secret"}}
+      - DATABASE_URL=postgresql://docmost:{{index . "db_password"}}@docmost-db:5432/docmost
+      - REDIS_URL=redis://docmost-redis:6379
+      - TZ={{index . "timezone"}}
+    volumes:
+      - {{index . "data_dir"}}/storage:/app/data/storage
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          pids: 200
+    depends_on:
+      docmost-db:
+        condition: service_healthy
+      docmost-redis:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=storage"
+  docmost-db:
+    image: postgres:16-alpine
+    container_name: docmost-db
+    restart: unless-stopped
+    shm_size: '256m'
+    environment:
+      - POSTGRES_DB=docmost
+      - POSTGRES_USER=docmost
+      - POSTGRES_PASSWORD={{index . "db_password"}}
+      - TZ={{index . "timezone"}}
+    volumes:
+      - {{index . "data_dir"}}/db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docmost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          pids: 100
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.dump.driver=postgres"
+      - "arabackup.dump.user=docmost"
+      - "arabackup.dump.password-env=POSTGRES_PASSWORD"
+      - "arabackup.dump.database=docmost"
+  docmost-redis:
+    image: redis:7-alpine
+    container_name: docmost-redis
+    restart: unless-stopped
+    environment:
+      - TZ={{index . "timezone"}}
+    volumes:
+      - {{index . "data_dir"}}/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          pids: 50
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+networks:
+  {{index . "network"}}:
+    external: true

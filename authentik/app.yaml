@@ -1,0 +1,58 @@
+name: authentik
+description: Identity provider with SSO, MFA, and user management
+category: infra
+version: "2024.12.3"
+ports:
+  - host: 9005
+    container: 9000
+    protocol: tcp
+    description: Web UI
+    value_name: web_port
+values:
+  - name: web_port
+    description: Web UI port
+    default: "9005"
+  - name: db_password
+    description: PostgreSQL password
+    secret: true
+    auto_gen: password
+  - name: secret_key
+    description: Authentik secret key
+    secret: true
+    auto_gen: password
+  - name: timezone
+    description: Timezone
+    default: "UTC"
+dependencies:
+  - docker
+volumes:
+  - name: media
+    container: /media
+    description: Authentik media files
+  - name: templates
+    container: /templates
+    description: Authentik custom templates
+  - name: certs
+    container: /certs
+    description: Authentik certificates
+  - name: db
+    container: /var/lib/postgresql/data
+    description: PostgreSQL data
+health_check:
+  url: "http://localhost:{{.web_port}}/-/health/live/"
+  interval: 30s
+backup:
+  paths:
+    - media
+    - templates
+    - certs
+    - db
+  pre_hook: "docker exec authentik-db pg_dumpall -U authentik > /tmp/authentik-db-backup.sql"
+  post_hook: "rm -f /tmp/authentik-db-backup.sql"
+requirements:
+  min_ram: 2G
+  min_disk: 5G
+  arch: [amd64, arm64]
+post_deploy_info:
+  access_url: "http://localhost:{{.web_port}}"
+  credentials: "Username: akadmin / Password: set on first login"

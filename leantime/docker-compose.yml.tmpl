@@ -1,0 +1,87 @@
+services:
+  leantime:
+    image: leantime/leantime:3.3.5
+    container_name: leantime
+    restart: unless-stopped
+    ports:
+      - "{{index . "web_port"}}:80"
+    environment:
+      - TZ={{index . "timezone"}}
+      - LEAN_DB_HOST=leantime-db
+      - LEAN_DB_USER=leantime
+      - LEAN_DB_PASSWORD={{index . "db_password"}}
+      - LEAN_DB_DATABASE=leantime
+      - LEAN_APP_URL={{index . "routing_url"}}
+    volumes:
+      - {{index . "data_dir"}}/userfiles:/var/www/html/userfiles
+      - {{index . "data_dir"}}/plugins:/var/www/html/app/Plugins
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          pids: 200
+    depends_on:
+      leantime-db:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=userfiles,plugins"
+  leantime-db:
+    image: mariadb:11.4
+    container_name: leantime-db
+    restart: unless-stopped
+    shm_size: '256m'
+    environment:
+      - TZ={{index . "timezone"}}
+      - MYSQL_ROOT_PASSWORD={{index . "db_password"}}
+      - MYSQL_DATABASE=leantime
+      - MYSQL_USER=leantime
+      - MYSQL_PASSWORD={{index . "db_password"}}
+    volumes:
+      - {{index . "data_dir"}}/db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          pids: 100
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.dump.driver=mariadb"
+      - "arabackup.dump.user=leantime"
+      - "arabackup.dump.password-env=MYSQL_PASSWORD"
+      - "arabackup.dump.database=leantime"
+networks:
+  {{index . "network"}}:
+    external: true

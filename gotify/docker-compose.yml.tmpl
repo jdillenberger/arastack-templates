@@ -1,0 +1,39 @@
+services:
+  gotify:
+    image: gotify/server:2.6.1
+    container_name: gotify
+    restart: unless-stopped
+    ports:
+      - "{{index . "web_port"}}:80"
+    environment:
+      - TZ={{index . "timezone"}}
+      - GOTIFY_DEFAULTUSER_PASS={{index . "default_admin_password"}}
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          pids: 200
+    volumes:
+      - {{index . "data_dir"}}/data:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - {{index . "network"}}
+
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=data"
+networks:
+  {{index . "network"}}:
+    external: true

@@ -1,0 +1,89 @@
+services:
+  tandoor-recipes:
+    image: vabene1111/recipes:1.5.27
+    container_name: tandoor-recipes
+    restart: unless-stopped
+    ports:
+      - "{{index . "web_port"}}:8080"
+    environment:
+      - SECRET_KEY={{index . "secret_key"}}
+      - DB_ENGINE=django.db.backends.postgresql
+      - POSTGRES_HOST=tandoor-db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=tandoor
+      - POSTGRES_PASSWORD={{index . "db_password"}}
+      - POSTGRES_DB=tandoor
+      - TZ={{index . "timezone"}}
+      - TIMEZONE={{index . "timezone"}}
+    volumes:
+      - {{index . "data_dir"}}/staticfiles:/opt/recipes/staticfiles
+      - {{index . "data_dir"}}/mediafiles:/opt/recipes/mediafiles
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8080/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          pids: 200
+    depends_on:
+      tandoor-db:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=staticfiles,mediafiles"
+  tandoor-db:
+    image: postgres:16-alpine
+    container_name: tandoor-db
+    restart: unless-stopped
+    shm_size: '256m'
+    environment:
+      - POSTGRES_DB=tandoor
+      - POSTGRES_USER=tandoor
+      - POSTGRES_PASSWORD={{index . "db_password"}}
+      - TZ={{index . "timezone"}}
+    volumes:
+      - {{index . "data_dir"}}/db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tandoor"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          pids: 100
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - {{index . "network"}}
+
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.dump.driver=postgres"
+      - "arabackup.dump.user=tandoor"
+      - "arabackup.dump.password-env=POSTGRES_PASSWORD"
+      - "arabackup.dump.database=tandoor"
+networks:
+  {{index . "network"}}:
+    external: true

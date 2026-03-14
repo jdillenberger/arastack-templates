@@ -1,0 +1,61 @@
+name: outline
+description: Modern team knowledge base and wiki
+category: productivity
+version: "0.82.0"
+ports:
+  - host: 3010
+    container: 3000
+    protocol: tcp
+    description: Web UI
+    value_name: web_port
+values:
+  - name: web_port
+    description: Web UI port
+    default: "3010"
+  - name: db_password
+    description: PostgreSQL password
+    secret: true
+    auto_gen: password
+  - name: secret_key
+    description: Secret key for session encryption
+    secret: true
+    auto_gen: password
+  - name: utils_secret
+    description: Utility secret key
+    secret: true
+    auto_gen: password
+  - name: minio_root_password
+    description: MinIO root password
+    secret: true
+    auto_gen: password
+  - name: timezone
+    description: Timezone
+    default: "UTC"
+dependencies:
+  - docker
+volumes:
+  - name: db
+    container: /var/lib/postgresql/data
+    description: PostgreSQL data
+  - name: redis
+    container: /data
+    description: Redis data
+  - name: storage-data
+    container: /data
+    description: MinIO storage data
+health_check:
+  url: "http://localhost:{{.web_port}}/_health"
+  interval: 60s
+backup:
+  paths:
+    - db
+    - redis
+    - storage-data
+  pre_hook: "docker exec outline-db pg_dumpall -U outline > /tmp/outline-db-backup.sql"
+  post_hook: "rm -f /tmp/outline-db-backup.sql"
+requirements:
+  min_ram: 1G
+  min_disk: 10G
+  arch: [amd64, arm64]
+lint_ignore:
+  - floating-image-tag  # minio/minio:latest used for embedded MinIO
