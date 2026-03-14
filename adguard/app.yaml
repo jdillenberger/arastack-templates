@@ -51,7 +51,7 @@ backup:
     - conf
     - work
 post_deploy_info:
-  credentials: "{{.admin_user}} / {{.admin_password}}"
+  credentials: "{{.admin_user}} / ********"
   notes:
     - "AdGuard Home does not support changing the password via the web UI."
 requirements:
