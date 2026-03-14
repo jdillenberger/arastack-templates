@@ -1,6 +1,6 @@
 # arastack Templates
 
-A collection of Docker Compose application templates for [arastack](https://github.com/arastack) — a self-hosted homelab management suite.
+A collection of Docker Compose application templates for [arastack](https://github.com/jdillenberger/arastack) — a self-hosted homelab management suite.
 
 Each template defines everything needed to deploy, route, monitor, and back up a self-hosted application with a single command:
 
