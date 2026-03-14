@@ -1,9 +1,31 @@
 services:
+  openclaw-init:
+    image: ghcr.io/openclaw/openclaw:latest
+    container_name: openclaw-init
+    user: "root"
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        chown -R 1000:1000 /home/node/.openclaw
+        if [ ! -f /home/node/.openclaw/openclaw.json ]; then
+          cat > /home/node/.openclaw/openclaw.json << 'CONF'
+        {"gateway":{"controlUi":{"allowedOrigins":["https://{{index . "app_name"}}-{{index . "hostname"}}.{{index . "domain"}}"]},"trustedProxies":["172.16.0.0/12","10.0.0.0/8","192.168.0.0/16"]}}
+        CONF
+          chown 1000:1000 /home/node/.openclaw/openclaw.json
+        fi
+    volumes:
+      - {{index . "data_dir"}}/config:/home/node/.openclaw
+      - {{index . "data_dir"}}/workspace:/home/node/.openclaw/workspace
+
   openclaw-gateway:
     image: ghcr.io/openclaw/openclaw:latest
     container_name: openclaw-gateway
     restart: unless-stopped
     init: true
+    command: ["node", "openclaw.mjs", "gateway", "--allow-unconfigured", "--bind", "lan"]
+    depends_on:
+      openclaw-init:
+        condition: service_completed_successfully
     ports:
       - "{{index . "gateway_port"}}:18789"
       - "{{index . "bridge_port"}}:18790"
