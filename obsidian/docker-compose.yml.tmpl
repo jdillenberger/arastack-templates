@@ -39,7 +39,7 @@ services:
 
     labels:
       - "arabackup.enable=true"
-      - "arabackup.borg.paths=config,couchdb-data,couchdb-config"
+      - "arabackup.borg.paths=config,couchdb-config"
   obsidian-db:
     image: couchdb:3.5.1
     container_name: obsidian-db
@@ -66,6 +66,11 @@ services:
       - {{index . "data_dir"}}/couchdb-config:/opt/couchdb/etc/local.d
     security_opt:
       - no-new-privileges:true
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.dump.driver=couchdb"
+      - "arabackup.dump.user=admin"
+      - "arabackup.dump.password-env=COUCHDB_PASSWORD"
     logging:
       driver: json-file
       options:
