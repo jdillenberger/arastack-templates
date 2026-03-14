@@ -1,0 +1,6 @@
+---
+users:
+  {{index . "admin_user"}}:
+    displayname: '{{index . "admin_user"}}'
+    password: '{{argon2Hash (index . "admin_password")}}'
+    email: '{{index . "admin_email"}}'

@@ -36,6 +36,9 @@ services:
     networks:
       - {{index . "network"}}
 
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=config"
   searxng-valkey:
     image: docker.io/valkey/valkey:8-alpine
     container_name: searxng-valkey

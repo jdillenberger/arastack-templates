@@ -39,6 +39,9 @@ services:
     networks:
       - {{index . "network"}}
 
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=content"
   ghost-db:
     image: mysql:8.0
     container_name: ghost-db
@@ -72,6 +75,12 @@ services:
     networks:
       - {{index . "network"}}
 
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.dump.driver=mysql"
+      - "arabackup.dump.user=ghost"
+      - "arabackup.dump.password-env=MYSQL_PASSWORD"
+      - "arabackup.dump.database=ghost"
 networks:
   {{index . "network"}}:
     external: true

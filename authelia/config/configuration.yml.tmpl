@@ -1,0 +1,30 @@
+---
+server:
+  address: 'tcp://:9091'
+
+log:
+  level: 'info'
+
+jwt_secret: '{{index . "jwt_secret"}}'
+
+authentication_backend:
+  file:
+    path: '/config/users_database.yml'
+
+access_control:
+  default_policy: 'one_factor'
+
+session:
+  secret: '{{index . "session_secret"}}'
+  cookies:
+    - domain: '{{index . "routing_base_domain"}}'
+      authelia_url: '{{index . "routing_url"}}'
+
+storage:
+  encryption_key: '{{index . "storage_encryption_key"}}'
+  local:
+    path: '/config/db.sqlite3'
+
+notifier:
+  filesystem:
+    filename: '/config/notification.txt'

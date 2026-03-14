@@ -54,6 +54,9 @@ services:
     networks:
       - {{index . "network"}}
 
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=public-system,redis"
   mastodon-streaming:
     image: ghcr.io/mastodon/mastodon-streaming:v4.5.7
     container_name: mastodon-streaming
@@ -157,6 +160,12 @@ services:
     networks:
       - {{index . "network"}}
 
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.dump.driver=postgres"
+      - "arabackup.dump.user=mastodon"
+      - "arabackup.dump.password-env=POSTGRES_PASSWORD"
+      - "arabackup.dump.database=mastodon_production"
   mastodon-redis:
     image: redis:7-alpine
     container_name: mastodon-redis

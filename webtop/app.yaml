@@ -33,6 +33,8 @@ health_check:
 backup:
   paths:
     - config
+routing:
+  auth: optional
 requirements:
   min_ram: 2G
   arch: [amd64, arm64]

@@ -48,6 +48,9 @@ services:
     volumes:
       - {{index . "data_dir"}}/config:/home/node/.openclaw
       - {{index . "data_dir"}}/workspace:/home/node/.openclaw/workspace
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=config,workspace"
     security_opt:
       - no-new-privileges:true
     logging:

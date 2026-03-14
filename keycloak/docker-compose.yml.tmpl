@@ -73,6 +73,12 @@ services:
     networks:
       - {{index . "network"}}
 
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.dump.driver=postgres"
+      - "arabackup.dump.user=keycloak"
+      - "arabackup.dump.password-env=POSTGRES_PASSWORD"
+      - "arabackup.dump.database=keycloak"
 networks:
   {{index . "network"}}:
     external: true

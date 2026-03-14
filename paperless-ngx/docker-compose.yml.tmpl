@@ -48,6 +48,9 @@ services:
     networks:
       - {{index . "network"}}
 
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=data,media"
   paperless-ngx-db:
     image: postgres:16-alpine
     container_name: paperless-ngx-db
@@ -81,6 +84,12 @@ services:
     networks:
       - {{index . "network"}}
 
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.dump.driver=postgres"
+      - "arabackup.dump.user=paperless"
+      - "arabackup.dump.password-env=POSTGRES_PASSWORD"
+      - "arabackup.dump.database=paperless"
   paperless-ngx-redis:
     image: redis:7-alpine
     container_name: paperless-ngx-redis

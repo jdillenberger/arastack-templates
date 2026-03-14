@@ -37,6 +37,9 @@ services:
     networks:
       - {{index . "network"}}
 
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=config,couchdb-data,couchdb-config"
   obsidian-db:
     image: couchdb:3.5.1
     container_name: obsidian-db

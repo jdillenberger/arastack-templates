@@ -1,0 +1,53 @@
+name: authelia
+description: Authentication and authorization server providing forward auth for Traefik
+category: infra
+version: "4.38"
+routing:
+  container_port: 9091
+  auth: none
+values:
+  - name: admin_user
+    description: Initial admin username
+    default: "admin"
+  - name: admin_password
+    description: Initial admin password
+    secret: true
+  - name: admin_email
+    description: Admin email address
+    required: true
+    validation: email
+  - name: jwt_secret
+    description: JWT signing secret
+    secret: true
+    auto_gen: password
+  - name: session_secret
+    description: Session encryption secret
+    secret: true
+    auto_gen: password
+  - name: storage_encryption_key
+    description: Storage encryption key
+    secret: true
+    auto_gen: password
+  - name: timezone
+    description: Timezone
+    default: "UTC"
+dependencies:
+  - docker
+volumes:
+  - name: config
+    container: /config
+    description: Authelia configuration and user database
+backup:
+  paths:
+    - config
+requirements:
+  min_ram: 128M
+  arch: [amd64, arm64]
+lint_ignore:
+  - unused-value:admin_password  # used via argon2Hash function call
+post_deploy_info:
+  access_url: "{{.routing_url}}"
+  credentials: "Username: {{.admin_user}}"
+  notes:
+    - "Login with the admin user and the password you configured"
+    - "Other apps can now use forward auth — redeploy them to enable Authelia protection"

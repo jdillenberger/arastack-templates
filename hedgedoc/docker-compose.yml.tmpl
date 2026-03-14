@@ -38,6 +38,9 @@ services:
     networks:
       - {{index . "network"}}
 
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=uploads"
   hedgedoc-db:
     image: postgres:16-alpine
     container_name: hedgedoc-db
@@ -71,6 +74,12 @@ services:
     networks:
       - {{index . "network"}}
 
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.dump.driver=postgres"
+      - "arabackup.dump.user=hedgedoc"
+      - "arabackup.dump.password-env=POSTGRES_PASSWORD"
+      - "arabackup.dump.database=hedgedoc"
 networks:
   {{index . "network"}}:
     external: true

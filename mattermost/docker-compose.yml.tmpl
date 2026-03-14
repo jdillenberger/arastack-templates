@@ -41,6 +41,9 @@ services:
     networks:
       - {{index . "network"}}
 
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=config,data,plugins"
   mattermost-db:
     image: postgres:16-alpine
     container_name: mattermost-db
@@ -74,6 +77,12 @@ services:
     networks:
       - {{index . "network"}}
 
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.dump.driver=postgres"
+      - "arabackup.dump.user=mattermost"
+      - "arabackup.dump.password-env=POSTGRES_PASSWORD"
+      - "arabackup.dump.database=mattermost"
 networks:
   {{index . "network"}}:
     external: true

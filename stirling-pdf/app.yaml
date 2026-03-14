@@ -34,6 +34,8 @@ backup:
   paths:
     - configs
     - data
+routing:
+  auth: optional
 requirements:
   min_ram: 256M
   arch: [amd64, arm64]

@@ -14,6 +14,9 @@ services:
       - NEXTCLOUD_ADMIN_USER={{index . "nextcloud_admin_user"}}
       - NEXTCLOUD_ADMIN_PASSWORD={{index . "nextcloud_admin_password"}}
       - NEXTCLOUD_TRUSTED_DOMAINS=localhost {{index . "routing_domain"}}
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=html"
 {{- if eq (index . "https_enabled") "true"}}
       - OVERWRITEPROTOCOL=https
 {{- end}}
@@ -82,6 +85,12 @@ services:
     networks:
       - {{index . "network"}}
 
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.dump.driver=mariadb"
+      - "arabackup.dump.user=nextcloud"
+      - "arabackup.dump.password-env=MYSQL_PASSWORD"
+      - "arabackup.dump.database=nextcloud"
 networks:
   {{index . "network"}}:
     external: true

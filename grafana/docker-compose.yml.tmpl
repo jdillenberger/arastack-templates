@@ -37,6 +37,9 @@ services:
     networks:
       - {{index . "network"}}
 
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=grafana-data,prometheus-data"
   grafana-prometheus:
     image: prom/prometheus:v3.3.0
     container_name: grafana-prometheus

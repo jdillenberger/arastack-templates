@@ -40,6 +40,9 @@ services:
     networks:
       - {{index . "network"}}
 
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=config"
   bookstack-db:
     image: mariadb:11.4
     container_name: bookstack-db
@@ -74,6 +77,12 @@ services:
     networks:
       - {{index . "network"}}
 
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.dump.driver=mariadb"
+      - "arabackup.dump.user=bookstack"
+      - "arabackup.dump.password-env=MYSQL_PASSWORD"
+      - "arabackup.dump.database=bookstack"
 networks:
   {{index . "network"}}:
     external: true

@@ -33,6 +33,9 @@ services:
     networks:
       - {{index . "network"}}
 
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=config,metadata"
 networks:
   {{index . "network"}}:
     external: true

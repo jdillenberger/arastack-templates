@@ -39,6 +39,9 @@ services:
     networks:
       - {{index . "network"}}
 
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=files"
   vikunja-db:
     image: postgres:16-alpine
     container_name: vikunja-db
@@ -72,6 +75,12 @@ services:
     networks:
       - {{index . "network"}}
 
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.dump.driver=postgres"
+      - "arabackup.dump.user=vikunja"
+      - "arabackup.dump.password-env=POSTGRES_PASSWORD"
+      - "arabackup.dump.database=vikunja"
 networks:
   {{index . "network"}}:
     external: true

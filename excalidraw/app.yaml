@@ -23,5 +23,7 @@ health_check:
 requirements:
   min_ram: 128M
   arch: [amd64, arm64]
+routing:
+  auth: optional
 lint_ignore:
   - floating-image-tag  # no semver releases available
