@@ -22,7 +22,7 @@ values:
     default: "9443"
   - name: timezone
     description: Timezone
-    default: "UTC"
+    validation: timezone
 dependencies:
   - docker
 volumes:

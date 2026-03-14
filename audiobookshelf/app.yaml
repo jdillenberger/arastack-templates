@@ -18,7 +18,7 @@ values:
     description: Path to podcasts library
   - name: timezone
     description: Timezone
-    default: "UTC"
+    validation: timezone
 dependencies:
   - docker
 volumes:

@@ -14,7 +14,7 @@ values:
     default: "8888"
   - name: timezone
     description: Timezone
-    default: "UTC"
+    validation: timezone
   - name: secret_key
     description: Secret key for SearXNG
     secret: true

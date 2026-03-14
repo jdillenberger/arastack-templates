@@ -16,7 +16,7 @@ values:
     description: Path to music library on host
   - name: timezone
     description: Timezone
-    default: "UTC"
+    validation: timezone
 dependencies:
   - docker
 volumes:

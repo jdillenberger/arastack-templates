@@ -20,7 +20,7 @@ values:
     description: Path for uploaded photos/videos
   - name: timezone
     description: Timezone
-    default: "UTC"
+    validation: timezone
 dependencies:
   - docker
 volumes:

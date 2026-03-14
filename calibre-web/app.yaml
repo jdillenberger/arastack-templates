@@ -16,7 +16,7 @@ values:
     description: Path to Calibre library
   - name: timezone
     description: Timezone
-    default: "UTC"
+    validation: timezone
 dependencies:
   - docker
 volumes:

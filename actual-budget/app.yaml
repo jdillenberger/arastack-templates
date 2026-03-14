@@ -14,7 +14,7 @@ values:
     default: "5006"
   - name: timezone
     description: Timezone
-    default: "UTC"
+    validation: timezone
 dependencies:
   - docker
 volumes:

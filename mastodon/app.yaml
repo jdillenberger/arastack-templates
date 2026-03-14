@@ -57,7 +57,7 @@ values:
     default: "mastodon.local"
   - name: timezone
     description: Timezone
-    default: "UTC"
+    validation: timezone
 dependencies:
   - docker
 volumes:

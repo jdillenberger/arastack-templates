@@ -26,7 +26,7 @@ values:
     auto_gen: password
   - name: timezone
     description: Timezone
-    default: "UTC"
+    validation: timezone
 dependencies:
   - docker
 volumes:
