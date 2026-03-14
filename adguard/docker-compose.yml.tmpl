@@ -5,8 +5,18 @@ services:
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
-        sed -i 's/address: 0.0.0.0:80$$/address: 0.0.0.0:3000/' /opt/adguardhome/conf/AdGuardHome.yaml 2>/dev/null
-        exec /opt/adguardhome/AdGuardHome --no-check-update -c /opt/adguardhome/conf/AdGuardHome.yaml -w /opt/adguardhome/work
+        CONF=/opt/adguardhome/conf/AdGuardHome.yaml
+        if [ -s "$$CONF" ]; then
+          sed -i 's/address: 0.0.0.0:80$$/address: 0.0.0.0:3000/' "$$CONF"
+          exec /opt/adguardhome/AdGuardHome --no-check-update -c "$$CONF" -w /opt/adguardhome/work
+        fi
+        /opt/adguardhome/AdGuardHome --no-check-update -c "$$CONF" -w /opt/adguardhome/work &
+        PID=$$!
+        for i in $$(seq 1 30); do wget -q --spider http://localhost:3000 2>/dev/null && break; sleep 1; done
+        wget -q -O /dev/null --header 'Content-Type: application/json' \
+          --post-data "{\"web\":{\"ip\":\"0.0.0.0\",\"port\":3000},\"dns\":{\"ip\":\"0.0.0.0\",\"port\":53},\"username\":\"$$ADMIN_USER\",\"password\":\"$$ADMIN_PASSWORD\"}" \
+          http://localhost:3000/control/install/configure
+        wait $$PID
     restart: unless-stopped
     ports:
       - "{{index . "web_port"}}:3000/tcp"
@@ -14,6 +24,8 @@ services:
       - "{{index . "dns_port"}}:53/udp"
     environment:
       - TZ={{index . "timezone"}}
+      - ADMIN_USER={{index . "admin_user"}}
+      - ADMIN_PASSWORD={{index . "admin_password"}}
     deploy:
       resources:
         limits:
@@ -23,11 +35,11 @@ services:
       - {{index . "data_dir"}}/work:/opt/adguardhome/work
       - {{index . "data_dir"}}/conf:/opt/adguardhome/conf
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000 || ([ -s /opt/adguardhome/conf/AdGuardHome.yaml ] && kill 1; exit 1)"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 30s
     logging:
       driver: json-file
       options:

@@ -25,6 +25,13 @@ values:
   - name: dns_port
     description: DNS port
     default: "53"
+  - name: admin_user
+    description: AdGuard admin username
+    default: "admin"
+  - name: admin_password
+    description: AdGuard admin password
+    secret: true
+    auto_gen: password
   - name: timezone
     description: Timezone
     default: "UTC"
@@ -44,6 +51,10 @@ backup:
   paths:
     - conf
     - work
+post_deploy_info:
+  credentials: "{{.admin_user}} / {{.admin_password}}"
+  notes:
+    - "Change your admin password after first login."
 requirements:
   min_ram: 128M
   arch: [amd64, arm64, armv7]
