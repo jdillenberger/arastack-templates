@@ -2,7 +2,11 @@ services:
   adguard:
     image: adguard/adguardhome:v0.107.72
     container_name: adguard
-    command: ["--web-addr", "0.0.0.0:3000", "--no-check-update"]
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        sed -i 's/address: 0.0.0.0:80$$/address: 0.0.0.0:3000/' /opt/adguardhome/conf/AdGuardHome.yaml 2>/dev/null
+        exec /opt/adguardhome/AdGuardHome --no-check-update -c /opt/adguardhome/conf/AdGuardHome.yaml -w /opt/adguardhome/work
     restart: unless-stopped
     ports:
       - "{{index . "web_port"}}:3000/tcp"
@@ -19,7 +23,7 @@ services:
       - {{index . "data_dir"}}/work:/opt/adguardhome/work
       - {{index . "data_dir"}}/conf:/opt/adguardhome/conf
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000 || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000 || ([ -s /opt/adguardhome/conf/AdGuardHome.yaml ] && kill 1; exit 1)"]
       interval: 30s
       timeout: 10s
       retries: 3
