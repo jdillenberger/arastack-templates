@@ -2,6 +2,7 @@ services:
   openclaw-init:
     image: ghcr.io/openclaw/openclaw:latest
     container_name: openclaw-init
+    restart: "no"
     user: "root"
     entrypoint: ["sh", "-c"]
     command:
@@ -13,6 +14,18 @@ services:
         CONF
           chown 1000:1000 /home/node/.openclaw/openclaw.json
         fi
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          pids: 50
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     volumes:
       - {{index . "data_dir"}}/config:/home/node/.openclaw
       - {{index . "data_dir"}}/workspace:/home/node/.openclaw/workspace
