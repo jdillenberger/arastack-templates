@@ -31,7 +31,6 @@ values:
   - name: admin_password
     description: AdGuard admin password
     secret: true
-    auto_gen: password
   - name: timezone
     description: Timezone
     default: "UTC"
@@ -54,7 +53,7 @@ backup:
 post_deploy_info:
   credentials: "{{.admin_user}} / {{.admin_password}}"
   notes:
-    - "Credentials are stored in the deployment info (aradeploy info adguard)."
+    - "AdGuard Home does not support changing the password via the web UI."
 requirements:
   min_ram: 128M
   arch: [amd64, arm64, armv7]
