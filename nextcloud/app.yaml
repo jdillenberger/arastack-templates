@@ -58,7 +58,7 @@ hooks:
   post_deploy:
     - type: exec
       command: |
-        if [ "{{index . "https_enabled"}}" = "true" ] && docker inspect nextcloud > /dev/null 2>&1; then
+        if [ {{index . "https_enabled"}} = "true" ] && docker inspect nextcloud > /dev/null 2>&1; then
           for i in $(seq 1 60); do
             docker exec nextcloud curl -sf http://localhost:80/status.php > /dev/null 2>&1 && break
             sleep 2
