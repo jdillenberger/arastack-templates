@@ -4,7 +4,7 @@ category: productivity
 version: "3.7.3"
 ports:
   - host: 8095
-    container: 80
+    container: 8080
     protocol: tcp
     description: Web UI
     value_name: web_port
