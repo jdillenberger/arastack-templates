@@ -42,6 +42,6 @@ backup:
   pre_hook: "docker exec linkwarden-db pg_dumpall -U linkwarden > /tmp/linkwarden-db-backup.sql"
   post_hook: "rm -f /tmp/linkwarden-db-backup.sql"
 requirements:
-  min_ram: 512M
+  min_ram: 1G
   min_disk: 5G
   arch: [amd64, arm64]
