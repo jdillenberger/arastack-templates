@@ -9,7 +9,7 @@ services:
     environment:
       - TZ={{index . "timezone"}}
       - WG_HOST={{index . "wg_host"}}
-      - "PASSWORD_HASH={{index . "password_hash"}}"
+      - PASSWORD_HASH={{index . "password_hash" | escapeCompose}}
     cap_add:
       - NET_ADMIN
     sysctls:
