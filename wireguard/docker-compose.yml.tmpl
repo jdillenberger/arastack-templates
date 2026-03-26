@@ -10,6 +10,7 @@ services:
       - PASSWORD_HASH={{index . "password_hash" | escapeCompose}}
       - PORT={{index . "web_port"}}
       - WG_PORT={{index . "vpn_port"}}
+      - WG_DEFAULT_DNS={{index . "wg_dns"}}
     cap_add:
       - NET_ADMIN
     deploy:

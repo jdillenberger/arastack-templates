@@ -27,6 +27,9 @@ values:
     description: "Web UI password hash (generate with: docker run -it ghcr.io/wg-easy/wg-easy wgpw 'YOUR_PASSWORD')"
     secret: true
     required: true
+  - name: wg_dns
+    description: DNS server for VPN clients (e.g. the WireGuard server's VPN address)
+    default: "10.8.0.1"
   - name: timezone
     description: Timezone
     validation: timezone
