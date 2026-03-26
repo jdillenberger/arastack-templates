@@ -23,6 +23,7 @@ values:
     description: Nextcloud admin password
     secret: true
     auto_gen: password
+    user_facing: true
   - name: db_name
     description: Database name
     default: "nextcloud"
@@ -65,6 +66,11 @@ hooks:
           done
           docker exec -u www-data nextcloud php occ security:certificates:import /usr/local/share/ca-certificates/homelabctl-ca.crt 2>/dev/null || true
         fi
+post_deploy_info:
+  access_url: "{{.routing_url}}"
+  credentials: "Username: {{.nextcloud_admin_user}}"
+  notes:
+    - "First startup may take a few minutes while the database is initialized"
 requirements:
   min_ram: 512M
   min_disk: 10G

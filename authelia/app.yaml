@@ -12,6 +12,8 @@ values:
   - name: admin_password
     description: Initial admin password
     secret: true
+    auto_gen: password
+    user_facing: true
   - name: admin_email
     description: Admin email address
     required: true
@@ -49,5 +51,5 @@ post_deploy_info:
   access_url: "{{.routing_url}}"
   credentials: "Username: {{.admin_user}}"
   notes:
-    - "Login with the admin user and the password you configured"
+    - "Login with the credentials shown above"
     - "Other apps can now use forward auth — redeploy them to enable Authelia protection"

@@ -27,6 +27,7 @@ values:
     description: Root password
     secret: true
     auto_gen: password
+    user_facing: true
   - name: timezone
     description: Timezone
     validation: timezone
@@ -42,6 +43,11 @@ health_check:
 backup:
   paths:
     - data
+post_deploy_info:
+  access_url: "{{.routing_url}}"
+  credentials: "Username: {{.root_user}}"
+  notes:
+    - "Access the web console on the console port to manage buckets and users"
 requirements:
   min_ram: 512M
   min_disk: 10G

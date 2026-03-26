@@ -55,4 +55,4 @@ requirements:
   arch: [amd64, arm64]
 post_deploy_info:
   access_url: "http://localhost:{{.web_port}}"
-  credentials: "Username: akadmin / Password: set on first login"
+  credentials: "Username: akadmin (password is set on first login)"

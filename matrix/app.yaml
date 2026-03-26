@@ -23,6 +23,7 @@ values:
     description: Shared secret for user registration
     secret: true
     auto_gen: password
+    user_facing: true
   - name: timezone
     description: Timezone
     validation: timezone
@@ -44,6 +45,11 @@ backup:
     - db
   pre_hook: "docker exec matrix-db pg_dumpall -U synapse > /tmp/matrix-db-backup.sql"
   post_hook: "rm -f /tmp/matrix-db-backup.sql"
+post_deploy_info:
+  access_url: "{{.routing_url}}"
+  notes:
+    - "Use the registration shared secret to create users via the Synapse admin API"
+    - "Connect with any Matrix client (Element, FluffyChat, etc.) using server name {{.server_name}}"
 requirements:
   min_ram: 1G
   min_disk: 5G

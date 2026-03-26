@@ -16,6 +16,7 @@ values:
     description: Initial admin password
     secret: true
     auto_gen: password
+    user_facing: true
   - name: timezone
     description: Timezone
     validation: timezone
@@ -31,6 +32,11 @@ health_check:
 backup:
   paths:
     - data
+post_deploy_info:
+  access_url: "{{.routing_url}}"
+  credentials: "Username: admin"
+  notes:
+    - "Change the default admin password after first login"
 requirements:
   min_ram: 64M
   arch: [amd64, arm64]

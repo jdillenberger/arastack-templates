@@ -32,6 +32,7 @@ values:
     description: GitLab root password
     secret: true
     auto_gen: password
+    user_facing: true
   - name: timezone
     description: Timezone
     validation: timezone
@@ -54,6 +55,11 @@ backup:
   paths:
     - config
     - data
+post_deploy_info:
+  access_url: "{{.routing_url}}"
+  credentials: "Username: root"
+  notes:
+    - "First startup can take 5-10 minutes while GitLab initializes"
 requirements:
   min_ram: 4G
   min_disk: 20G

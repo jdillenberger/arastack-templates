@@ -21,6 +21,7 @@ values:
     description: Keycloak admin password
     secret: true
     auto_gen: password
+    user_facing: true
   - name: db_password
     description: PostgreSQL password
     secret: true
@@ -48,6 +49,11 @@ backup:
     - db
   pre_hook: "docker exec keycloak-db pg_dumpall -U keycloak > /tmp/keycloak-db-backup.sql"
   post_hook: "rm -f /tmp/keycloak-db-backup.sql"
+post_deploy_info:
+  access_url: "{{.routing_url}}"
+  credentials: "Username: {{.admin_user}}"
+  notes:
+    - "First startup may take a minute while Keycloak initializes"
 requirements:
   min_ram: 512M
   min_disk: 2G

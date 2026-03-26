@@ -16,6 +16,7 @@ values:
     description: Grafana admin password
     secret: true
     auto_gen: password
+    user_facing: true
   - name: timezone
     description: Timezone
     validation: timezone
@@ -38,8 +39,8 @@ backup:
 routing:
   container_port: 3000
 post_deploy_info:
-  access_url: "http://localhost:{{.web_port}}"
-  credentials: "Username: admin / Password: (generated, see .env)"
+  access_url: "{{.routing_url}}"
+  credentials: "Username: admin"
   notes:
     - "Prometheus datasource is pre-configured"
     - "Open the 'Arastack Overview' dashboard for server and traefik metrics"

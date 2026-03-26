@@ -27,6 +27,7 @@ values:
     description: Admin password
     secret: true
     auto_gen: password
+    user_facing: true
   - name: timezone
     description: Timezone
     validation: timezone
@@ -61,6 +62,11 @@ backup:
     - db
   pre_hook: "docker exec paperless-ngx-db pg_dumpall -U paperless > /tmp/paperless-db-backup.sql"
   post_hook: "rm -f /tmp/paperless-db-backup.sql"
+post_deploy_info:
+  access_url: "{{.routing_url}}"
+  credentials: "Username: {{.admin_user}}"
+  notes:
+    - "Drop files into the consume directory for automatic import"
 requirements:
   min_ram: 1G
   min_disk: 10G

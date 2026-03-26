@@ -24,6 +24,7 @@ values:
     description: Gateway authentication token
     secret: true
     auto_gen: password
+    user_facing: true
   - name: timezone
     description: Timezone
     validation: timezone
@@ -43,6 +44,10 @@ backup:
   paths:
     - config
     - workspace
+post_deploy_info:
+  access_url: "{{.routing_url}}"
+  notes:
+    - "Use the gateway token to authenticate API requests"
 routing:
   auth: optional
 requirements:

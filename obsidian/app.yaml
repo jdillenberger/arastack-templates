@@ -24,6 +24,7 @@ values:
     description: CouchDB admin password
     secret: true
     auto_gen: password
+    user_facing: true
   - name: timezone
     description: Timezone
     validation: timezone
@@ -51,5 +52,10 @@ requirements:
   min_ram: 1G
   min_disk: 5G
   arch: [amd64, arm64]
+post_deploy_info:
+  access_url: "{{.routing_url}}"
+  credentials: "CouchDB admin user: admin"
+  notes:
+    - "Configure Obsidian LiveSync plugin to point to CouchDB on port {{.couchdb_port}}"
 lint_ignore:
   - floating-image-tag  # linuxserver uses date-based tags only

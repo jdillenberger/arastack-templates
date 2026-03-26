@@ -16,6 +16,7 @@ values:
     description: PhotoPrism admin password
     secret: true
     auto_gen: password
+    user_facing: true
   - name: db_password
     description: MariaDB password
     secret: true
@@ -49,4 +50,4 @@ requirements:
   arch: [amd64, arm64]
 post_deploy_info:
   access_url: "http://localhost:{{.web_port}}"
-  credentials: "Username: admin / Password: (generated, see .env)"
+  credentials: "Username: admin"

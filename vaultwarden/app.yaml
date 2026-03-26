@@ -16,6 +16,7 @@ values:
     description: Admin panel token
     secret: true
     auto_gen: password
+    user_facing: true
   - name: signups_allowed
     description: Allow new user signups
     default: "false"
@@ -34,6 +35,12 @@ health_check:
 backup:
   paths:
     - data
+post_deploy_info:
+  access_url: "{{.routing_url}}"
+  credentials: "Admin panel at /admin"
+  notes:
+    - "Create your account at the web UI, then use Bitwarden clients to connect"
+    - "Admin panel is at /admin — use the admin token to log in"
 requirements:
   min_ram: 128M
   arch: [amd64, arm64]

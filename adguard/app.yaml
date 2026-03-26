@@ -31,6 +31,8 @@ values:
   - name: admin_password
     description: AdGuard admin password
     secret: true
+    auto_gen: password
+    user_facing: true
   - name: timezone
     description: Timezone
     validation: timezone
@@ -50,10 +52,15 @@ backup:
   paths:
     - conf
     - work
+hooks:
+  post_deploy:
+    - type: exec
+      command: "pkill -HUP aramdns 2>/dev/null || true"
 post_deploy_info:
-  credentials: "{{.admin_user}} / ********"
+  credentials: "Username: {{.admin_user}}"
   notes:
     - "AdGuard Home does not support changing the password via the web UI."
+    - "aramdns auto-discovers this instance for DNS sync — no additional configuration needed"
 requirements:
   min_ram: 128M
   arch: [amd64, arm64, armv7]
