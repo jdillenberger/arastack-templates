@@ -11,6 +11,8 @@ services:
       - PORT={{index . "web_port"}}
       - WG_PORT={{index . "vpn_port"}}
       - WG_DEFAULT_DNS={{index . "wg_dns"}}
+      - WG_POST_UP=nft add rule ip filter DOCKER-USER iifname "wg0" accept; nft add rule ip filter DOCKER-USER oifname "wg0" accept; nft add rule ip nat POSTROUTING oifname "eth0" ip saddr 10.8.0.0/24 masquerade
+      - WG_POST_DOWN=nft flush chain ip filter DOCKER-USER
     cap_add:
       - NET_ADMIN
     deploy:
