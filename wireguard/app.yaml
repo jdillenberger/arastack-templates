@@ -39,7 +39,7 @@ volumes:
     container: /etc/wireguard
     description: WireGuard configuration
 health_check:
-  url: "http://localhost:{{.web_port}}"
+  url: "http://127.0.0.1:{{.web_port}}"
   interval: 30s
 backup:
   paths:
