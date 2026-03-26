@@ -3,13 +3,13 @@ services:
     image: ghcr.io/wg-easy/wg-easy:14
     container_name: wireguard
     restart: unless-stopped
-    ports:
-      - "{{index . "vpn_port"}}:51820/udp"
-      - "{{index . "web_port"}}:51821/tcp"
+    network_mode: host
     environment:
       - TZ={{index . "timezone"}}
       - WG_HOST={{index . "wg_host"}}
       - PASSWORD_HASH={{index . "password_hash" | escapeCompose}}
+      - PORT={{index . "web_port"}}
+      - WG_PORT={{index . "vpn_port"}}
     cap_add:
       - NET_ADMIN
     sysctls:
@@ -25,7 +25,7 @@ services:
     volumes:
       - {{index . "data_dir"}}/config:/etc/wireguard
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:51821 || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:{{index . "web_port"}} || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -35,12 +35,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    networks:
-      - {{index . "network"}}
 
     labels:
       - "arabackup.enable=true"
       - "arabackup.borg.paths=config"
-networks:
-  {{index . "network"}}:
-    external: true
