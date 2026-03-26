@@ -1,0 +1,70 @@
+name: pihole
+description: Network-wide ad blocking via DNS with web admin interface (v6+)
+category: infra
+version: "2025.03.0"
+ports:
+  - host: 80
+    container: 80
+    protocol: tcp
+    description: Web UI (admin)
+    value_name: web_port
+  - host: 53
+    container: 53
+    protocol: tcp
+    description: DNS (TCP)
+    value_name: dns_port
+  - host: 53
+    container: 53
+    protocol: udp
+    description: DNS (UDP)
+    value_name: dns_port
+values:
+  - name: web_port
+    description: Web UI port
+    default: "80"
+  - name: dns_port
+    description: DNS port
+    default: "53"
+  - name: web_password
+    description: Pi-hole web admin password
+    secret: true
+    auto_gen: password
+    user_facing: true
+  - name: timezone
+    description: Timezone
+    validation: timezone
+dependencies:
+  - docker
+volumes:
+  - name: etc-pihole
+    container: /etc/pihole
+    description: Pi-hole configuration
+  - name: etc-dnsmasq
+    container: /etc/dnsmasq.d
+    description: dnsmasq configuration
+routing:
+  subdomain: pihole
+  container_port: 80
+  keep_ports: true
+health_check:
+  url: "http://localhost:{{.web_port}}/admin/"
+  interval: 30s
+backup:
+  paths:
+    - etc-pihole
+    - etc-dnsmasq
+hooks:
+  post_deploy:
+    - type: exec
+      command: "pkill -HUP aramdns 2>/dev/null || true"
+post_deploy_info:
+  access_url: "{{.routing_url}}"
+  credentials: "Username: admin"
+  notes:
+    - "Configure your router DHCP to use this host's IP as DNS server"
+    - "Set Pi-hole as upstream DNS in AdGuard if using both"
+    - "aramdns auto-discovers this instance for DNS sync — no additional configuration needed"
+requirements:
+  min_ram: 128M
+  min_version: "6.0"  # uses v6 API (FTLCONF_webserver_api_password, /api/dns/custom)
+  arch: [amd64, arm64, armv7]

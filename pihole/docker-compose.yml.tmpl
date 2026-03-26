@@ -1,0 +1,43 @@
+services:
+  pihole:
+    image: pihole/pihole:2025.03.0
+    container_name: pihole
+    restart: unless-stopped
+    ports:
+      - "{{index . "web_port"}}:80/tcp"
+      - "{{index . "dns_port"}}:53/tcp"
+      - "{{index . "dns_port"}}:53/udp"
+    environment:
+      - TZ={{index . "timezone"}}
+      - FTLCONF_webserver_api_password={{index . "web_password"}}
+      - DNSMASQ_LISTENING=all
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          pids: 200
+    volumes:
+      - {{index . "data_dir"}}/etc-pihole:/etc/pihole
+      - {{index . "data_dir"}}/etc-dnsmasq:/etc/dnsmasq.d
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost/admin/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - {{index . "network"}}
+
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=etc-pihole,etc-dnsmasq"
+networks:
+  {{index . "network"}}:
+    external: true
