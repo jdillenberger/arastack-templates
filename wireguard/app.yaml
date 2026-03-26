@@ -30,6 +30,8 @@ values:
   - name: timezone
     description: Timezone
     validation: timezone
+routing:
+  container_port: 51821
 dependencies:
   - docker
 volumes:
