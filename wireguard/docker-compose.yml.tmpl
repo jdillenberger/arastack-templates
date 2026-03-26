@@ -12,9 +12,6 @@ services:
       - WG_PORT={{index . "vpn_port"}}
     cap_add:
       - NET_ADMIN
-    sysctls:
-      - net.ipv4.conf.all.src_valid_mark=1
-      - net.ipv4.ip_forward=1
     deploy:
       resources:
         limits:
