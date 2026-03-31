@@ -25,6 +25,8 @@ values:
   - name: timezone
     description: Timezone
     validation: timezone
+routing:
+  enabled: false
 dependencies:
   - docker
 requirements:
