@@ -14,7 +14,6 @@ services:
       - TELEGRAF_INTERVAL={{index . "collect_interval"}}
       - MQTT_HOST={{index . "mqtt_host"}}
       - MQTT_PORT={{index . "mqtt_port"}}
-      - MQTT_TOPIC_PREFIX={{index . "mqtt_topic_prefix"}}
       - MQTT_USERNAME={{index . "mqtt_username"}}
       - MQTT_PASSWORD={{index . "mqtt_password"}}
     deploy:

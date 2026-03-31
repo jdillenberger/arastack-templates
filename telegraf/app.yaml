@@ -16,9 +16,6 @@ values:
   - name: mqtt_password
     description: MQTT password
     secret: true
-  - name: mqtt_topic_prefix
-    description: MQTT topic prefix
-    default: "homeassistant"
   - name: collect_interval
     description: Metrics collection interval
     default: "30s"
