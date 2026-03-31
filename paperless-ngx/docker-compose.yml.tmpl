@@ -15,7 +15,7 @@ services:
       - PAPERLESS_ADMIN_USER={{index . "admin_user"}}
       - PAPERLESS_ADMIN_PASSWORD={{index . "admin_password"}}
       - PAPERLESS_URL={{index . "routing_url"}}
-      - PAPERLESS_CSRF_TRUSTED_ORIGINS={{index . "routing_url"}},http://{{index . "hostname"}}.{{index . "domain"}}:{{index . "web_port"}},http://localhost:{{index . "web_port"}}
+      - PAPERLESS_CSRF_TRUSTED_ORIGINS={{index . "routing_urls"}},http://{{index . "hostname"}}.{{index . "domain"}}:{{index . "web_port"}},http://localhost:{{index . "web_port"}}
       - TZ={{index . "timezone"}}
     volumes:
       - {{index . "data_dir"}}/data:/usr/src/paperless/data
