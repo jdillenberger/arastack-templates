@@ -18,10 +18,6 @@
   password = "{{index . "mqtt_password"}}"
   data_format = "json"
   json_timestamp_units = "seconds"
-  # Use hostname/metric_name as topic structure
-  # e.g. homeassistant/pi01/cpu
-  topic = "{{ "{{" }} .TopicPrefix {{ "}}" }}/{{ "{{" }} .Hostname {{ "}}" }}/{{ "{{" }} .PluginName {{ "}}" }}"
-  batch = false
 
 # --- Inputs ---
 

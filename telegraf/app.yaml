@@ -27,10 +27,6 @@ values:
     validation: timezone
 dependencies:
   - docker
-volumes:
-  - name: config
-    container: /etc/telegraf
-    description: Telegraf configuration
 requirements:
   min_ram: 64M
   arch: [amd64, arm64]

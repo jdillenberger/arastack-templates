@@ -16,7 +16,7 @@ services:
           memory: 128M
           pids: 100
     volumes:
-      - {{index . "data_dir"}}/config:/etc/telegraf:ro
+      - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
       - /etc:/host/etc:ro
