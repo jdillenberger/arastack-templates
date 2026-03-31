@@ -1,0 +1,21 @@
+{
+  "production": {
+    "csp": {
+      "addDefaults": false,
+      "directives": {
+        "defaultSrc": ["'none'"],
+        "baseUri": ["'self'"],
+        "connectSrc": ["'self'", "wss:", "https://vimeo.com/api/v2/video/"],
+        "fontSrc": ["'self'"],
+        "manifestSrc": ["'self'"],
+        "frameSrc": ["'self'", "https://player.vimeo.com", "https://www.youtube.com", "https://gist.github.com", "*"],
+        "imgSrc": ["*", "data:"],
+        "scriptSrc": ["'self'", "'unsafe-inline'"],
+        "styleSrc": ["'self'", "'unsafe-inline'"],
+        "objectSrc": ["*"],
+        "formAction": ["'self'"],
+        "mediaSrc": ["*"]
+      }
+    }
+  }
+}
