@@ -31,6 +31,17 @@ values:
   - name: timezone
     description: Timezone
     validation: timezone
+  - name: oidc_enabled
+    description: "Enable OpenID Connect authentication (true/false)"
+  - name: oidc_server_url
+    description: "OIDC discovery URL (e.g. https://keycloak.example.com/realms/myrealm/.well-known/openid-configuration)"
+  - name: oidc_client_id
+    description: "OIDC client ID"
+  - name: oidc_client_secret
+    description: "OIDC client secret"
+    secret: true
+lint_ignore:
+  - "secret-no-autogen:oidc_client_secret"
 dependencies:
   - docker
 volumes:

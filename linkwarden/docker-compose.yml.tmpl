@@ -13,6 +13,9 @@ services:
       - TZ={{index . "timezone"}}
     volumes:
       - {{index . "data_dir"}}/data:/data/data
+{{- if ne (index . "ca_cert_path") ""}}
+      - {{index . "data_dir"}}/ca-bundle.crt:/etc/ssl/certs/ca-certificates.crt:ro
+{{- end}}
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:3000/ > /dev/null || exit 1"]
       interval: 30s
