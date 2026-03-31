@@ -33,11 +33,6 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    network_mode: host
     security_opt:
       - no-new-privileges:true
-    networks:
-      - {{index . "network"}}
-
-networks:
-  {{index . "network"}}:
-    external: true
