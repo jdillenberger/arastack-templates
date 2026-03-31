@@ -25,6 +25,8 @@ values:
   - name: timezone
     description: Timezone
     validation: timezone
+lint_ignore:
+  - "secret-no-autogen:mqtt_password"
 routing:
   enabled: false
 dependencies:
