@@ -33,6 +33,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    network_mode: host
+    network_mode: host{{if index . "docker_gid"}}
+    group_add:
+      - "{{index . "docker_gid"}}"{{end}}
     security_opt:
       - no-new-privileges:true

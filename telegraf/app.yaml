@@ -22,6 +22,9 @@ values:
   - name: collect_interval
     description: Metrics collection interval
     default: "30s"
+  - name: docker_gid
+    description: "Docker socket group ID (stat -c '%g' /var/run/docker.sock)"
+    default: ""
   - name: timezone
     description: Timezone
     validation: timezone
