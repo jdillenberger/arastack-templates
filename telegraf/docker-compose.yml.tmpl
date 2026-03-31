@@ -13,7 +13,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
+          memory: 512M
           pids: 100
     volumes:
       - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
