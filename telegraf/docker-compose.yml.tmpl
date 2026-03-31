@@ -3,6 +3,7 @@ services:
     image: telegraf:1.34
     container_name: telegraf
     restart: unless-stopped
+    user: "0:0"
     hostname: {{index . "hostname"}}
     environment:
       - TZ={{index . "timezone"}}
