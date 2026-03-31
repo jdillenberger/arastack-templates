@@ -23,9 +23,8 @@ services:
           pids: 100
     volumes:
       - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /etc:/host/etc:ro
+      - /:/host:ro
+      - /var/run/utmp:/var/run/utmp:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     logging:
       driver: json-file
