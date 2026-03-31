@@ -13,7 +13,7 @@ services:
       - MYSQL_PASSWORD={{index . "db_user_password"}}
       - NEXTCLOUD_ADMIN_USER={{index . "nextcloud_admin_user"}}
       - NEXTCLOUD_ADMIN_PASSWORD={{index . "nextcloud_admin_password"}}
-      - NEXTCLOUD_TRUSTED_DOMAINS=localhost {{index . "routing_domain"}}
+      - NEXTCLOUD_TRUSTED_DOMAINS=localhost {{index . "routing_domains"}}
 {{- if eq (index . "https_enabled") "true"}}
       - OVERWRITEPROTOCOL=https
 {{- end}}
@@ -35,6 +35,7 @@ services:
       - {{index . "data_dir"}}/html:/var/www/html
 {{- if ne (index . "ca_cert_path") ""}}
       - {{index . "data_dir"}}/ca-bundle.crt:/etc/ssl/certs/ca-certificates.crt:ro
+      - {{index . "data_dir"}}/ca-bundle.crt:/var/www/html/resources/config/ca-bundle.crt:ro
       - {{index . "ca_cert_path"}}:/usr/local/share/ca-certificates/homelabctl-ca.crt:ro
 {{- end}}
     depends_on:
