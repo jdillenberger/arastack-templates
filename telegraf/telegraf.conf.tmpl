@@ -1,0 +1,59 @@
+[agent]
+  interval = "{{index . "collect_interval"}}"
+  round_interval = true
+  metric_batch_size = 1000
+  metric_buffer_limit = 10000
+  collection_jitter = "5s"
+  flush_interval = "10s"
+  flush_jitter = "5s"
+  hostname = "{{index . "hostname"}}"
+  omit_hostname = false
+
+# --- Outputs ---
+
+[[outputs.mqtt]]
+  servers = ["tcp://{{index . "mqtt_host"}}:{{index . "mqtt_port"}}"]
+  topic_prefix = "{{index . "mqtt_topic_prefix"}}"
+  username = "{{index . "mqtt_username"}}"
+  password = "{{index . "mqtt_password"}}"
+  data_format = "json"
+  json_timestamp_units = "seconds"
+  # Use hostname/metric_name as topic structure
+  # e.g. homeassistant/pi01/cpu
+  topic = "{{ "{{" }} .TopicPrefix {{ "}}" }}/{{ "{{" }} .Hostname {{ "}}" }}/{{ "{{" }} .PluginName {{ "}}" }}"
+  batch = false
+
+# --- Inputs ---
+
+[[inputs.cpu]]
+  percpu = false
+  totalcpu = true
+  collect_cpu_time = false
+  report_active = false
+
+[[inputs.mem]]
+
+[[inputs.swap]]
+
+[[inputs.disk]]
+  mount_points = ["/host"]
+  ignore_fs = ["tmpfs", "devtmpfs", "devfs", "overlay", "aufs", "squashfs"]
+
+[[inputs.diskio]]
+
+[[inputs.net]]
+  ignore_protocol_stats = true
+  interfaces = ["eth*", "en*", "wl*"]
+
+[[inputs.system]]
+
+[[inputs.processes]]
+
+[[inputs.temp]]
+
+[[inputs.docker]]
+  endpoint = "unix:///var/run/docker.sock"
+  gather_services = false
+  perdevice = false
+  total = true
+  timeout = "5s"

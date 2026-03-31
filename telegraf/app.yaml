@@ -1,0 +1,36 @@
+name: telegraf
+description: System monitoring agent that publishes metrics to MQTT for Home Assistant
+category: infra
+version: "1.34"
+ports: []
+values:
+  - name: mqtt_host
+    description: MQTT broker hostname
+    default: "homeassistant.local"
+  - name: mqtt_port
+    description: MQTT broker port
+    default: "1883"
+  - name: mqtt_username
+    description: MQTT username
+    default: "mqtt"
+  - name: mqtt_password
+    description: MQTT password
+    secret: true
+  - name: mqtt_topic_prefix
+    description: MQTT topic prefix
+    default: "homeassistant"
+  - name: collect_interval
+    description: Metrics collection interval
+    default: "30s"
+  - name: timezone
+    description: Timezone
+    validation: timezone
+dependencies:
+  - docker
+volumes:
+  - name: config
+    container: /etc/telegraf
+    description: Telegraf configuration
+requirements:
+  min_ram: 64M
+  arch: [amd64, arm64]
