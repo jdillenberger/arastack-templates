@@ -29,8 +29,8 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1G
-          pids: 200
+          memory: 2G
+          pids: 500
     volumes:
       - {{index . "data_dir"}}/html:/var/www/html
 {{- if ne (index . "ca_cert_path") ""}}
@@ -43,8 +43,11 @@ services:
         condition: service_healthy
     extra_hosts:
       - "{{index . "routing_domain"}}:host-gateway"
+    cap_add:
+      - MKNOD
+      - SYS_ADMIN
     security_opt:
-      - no-new-privileges:true
+      - no-new-privileges:false
     logging:
       driver: json-file
       options:
