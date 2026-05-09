@@ -47,7 +47,12 @@ backup:
 post_deploy_info:
   access_url: "{{.routing_url}}"
   notes:
-    - "Use the gateway token to authenticate API requests"
+    - "Open the chat UI at {{.routing_url}}/chat"
+    - "When the chat UI prompts for connection details, paste:"
+    - "  WebSocket URL: wss://{{.routing_domain}}"
+    - "  Gateway Token: {{.gateway_token}}"
+    - "  Password:      leave blank (the gateway runs with --auth token)"
+    - "API requests authenticate with the same gateway token"
 routing:
   auth: optional
 requirements:
