@@ -1,0 +1,91 @@
+services:
+  radicale-init:
+    image: httpd:2.4-alpine
+    container_name: radicale-init
+    restart: "no"
+    user: "0"
+    network_mode: "none"
+    environment:
+      - ADMIN_USER={{index . "admin_user"}}
+      - ADMIN_PASSWORD={{index . "admin_password"}}
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        set -e
+        mkdir -p /data/collections
+        if [ ! -s /data/users ]; then
+          printf '%s' "$$ADMIN_PASSWORD" | htpasswd -B -i -c /data/users "$$ADMIN_USER"
+          chmod 0600 /data/users
+          chown -R 2999:2999 /data
+        fi
+    volumes:
+      - {{index . "data_dir"}}/data:/data
+    deploy:
+      resources:
+        limits:
+          memory: 32M
+          pids: 50
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+
+  radicale:
+    image: tomsquest/docker-radicale:3.7.2.0
+    container_name: radicale
+    restart: unless-stopped
+    depends_on:
+      radicale-init:
+        condition: service_completed_successfully
+    ports:
+      - "{{index . "web_port"}}:5232"
+    environment:
+      - TZ={{index . "timezone"}}
+    read_only: true
+    tmpfs:
+      - /tmp:size=64M,mode=1777
+      - /run/s6:size=8M
+      - /run:size=8M
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+      - FOWNER
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          pids: 100
+    volumes:
+      - {{index . "data_dir"}}/data:/data
+      - {{index . "data_dir"}}/config:/config:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "wget --tries=1 --timeout=5 -O /dev/null -S http://127.0.0.1:5232/ 2>&1 | grep -qE 'HTTP/[0-9.]+ (200|401)'"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - {{index . "network"}}
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=data"
+
+networks:
+  {{index . "network"}}:
+    external: true

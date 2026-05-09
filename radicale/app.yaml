@@ -1,0 +1,56 @@
+name: radicale
+description: Lightweight CalDAV and CardDAV server for calendars and contacts
+category: productivity
+version: "3.7.2.0"
+ports:
+  - host: 5232
+    container: 5232
+    protocol: tcp
+    description: Web UI and DAV endpoint
+    value_name: web_port
+values:
+  - name: web_port
+    description: Web UI and DAV port
+    default: "5232"
+  - name: admin_user
+    description: Initial username (created on first deploy)
+    default: "admin"
+    user_facing: true
+  - name: admin_password
+    description: Initial password (created on first deploy)
+    secret: true
+    auto_gen: password
+    user_facing: true
+  - name: timezone
+    description: Timezone
+    validation: timezone
+dependencies:
+  - docker
+volumes:
+  - name: data
+    container: /data
+    description: Radicale collections and users file
+  - name: config
+    container: /config
+    description: Radicale configuration file
+health_check:
+  url: "http://localhost:{{.web_port}}/"
+  interval: 30s
+backup:
+  paths:
+    - data
+post_deploy_info:
+  access_url: "{{.routing_url}}"
+  credentials: "Username: {{.admin_user}}"
+  notes:
+    - "Add CalDAV/CardDAV clients with URL {{.routing_url}}/{{.admin_user}}/"
+    - "Add more users from the host with: docker exec radicale htpasswd -B /data/users <name>"
+    - "The initial password is auto-generated; rotate it from the host after first login"
+routing:
+  container_port: 5232
+  auth: optional
+requirements:
+  min_ram: 64M
+  arch: [amd64, arm64]
+lint_ignore:
+  - missing-healthcheck    # radicale-init is a one-shot init container

@@ -1,0 +1,40 @@
+# Radicale
+
+Lightweight CalDAV and CardDAV server. Hosts calendars and address books that
+sync to standard clients (Thunderbird, iOS, Android DAVx⁵, macOS, etc.).
+
+## Auth model
+
+The first deploy generates `/data/users` with a single bcrypt-hashed user
+(`admin_user` / `admin_password` from the deploy values). Radicale reads it on
+every request via standard `htpasswd` auth. To add users later:
+
+```bash
+docker exec radicale htpasswd -B /data/users <username>
+```
+
+To remove a user:
+
+```bash
+docker exec radicale htpasswd -D /data/users <username>
+```
+
+## DAV URLs
+
+After deploy, point clients at `{{routing_url}}/<username>/` (the trailing slash
+matters for some clients). Radicale auto-creates per-user collections on first
+sync.
+
+## Storage layout
+
+- `/data/collections/` — calendar and contact data (one directory per user, then
+  per collection). Backed up via `arabackup`.
+- `/data/users` — bcrypt-hashed credentials.
+- `/config/config` — rendered Radicale configuration (read-only mount).
+
+## Notes
+
+- The container is read-only with a minimal capability set; only `/data` is
+  writable. The web UI at `/.web/` is the radicale-built-in client.
+- Tomsquest's image runs as uid 2999. The init container chowns `/data` on
+  every deploy to keep ownership consistent if the host filesystem changes it.
