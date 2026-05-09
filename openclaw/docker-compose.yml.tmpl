@@ -8,12 +8,31 @@ services:
     restart: "no"
     user: "root"
     entrypoint: ["sh", "-c"]
+    environment:
+      - ARASTACK_ALLOWED_ORIGINS={{index . "routing_urls"}}
     command:
       - |
+        set -e
         chown -R 1000:1000 /home/node/.openclaw
-        cat > /home/node/.openclaw/openclaw.json << 'CONF'
-        {"gateway":{"controlUi":{"allowedOrigins":[{{range $i, $u := split (index . "routing_urls") ","}}{{if $i}},{{end}}"{{$u}}"{{end}}]},"trustedProxies":["172.16.0.0/12","10.0.0.0/8","192.168.0.0/16"]}}
-        CONF
+        # Merge our gateway overrides into openclaw.json without clobbering
+        # runtime additions (default model, agent profiles, meta, …). Idempotent.
+        python3 - <<'PY'
+        import json, os
+        path = "/home/node/.openclaw/openclaw.json"
+        cfg = {}
+        if os.path.exists(path):
+            try:
+                with open(path) as f:
+                    cfg = json.load(f)
+            except Exception:
+                cfg = {}
+        origins = [u for u in os.environ.get("ARASTACK_ALLOWED_ORIGINS", "").split(",") if u]
+        cfg.setdefault("gateway", {})
+        cfg["gateway"]["controlUi"] = {"allowedOrigins": origins}
+        cfg["gateway"]["trustedProxies"] = ["172.16.0.0/12", "10.0.0.0/8", "192.168.0.0/16"]
+        with open(path, "w") as f:
+            json.dump(cfg, f, indent=2)
+        PY
         chown 1000:1000 /home/node/.openclaw/openclaw.json
     security_opt:
       - no-new-privileges:true
