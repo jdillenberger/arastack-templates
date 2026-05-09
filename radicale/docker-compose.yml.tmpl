@@ -12,7 +12,30 @@ services:
     command:
       - |
         set -e
-        mkdir -p /data/collections
+        mkdir -p /data/collections /etcradicale
+        cat > /etcradicale/config <<'CFG_EOF'
+        [server]
+        hosts = 0.0.0.0:5232
+        max_connections = 20
+        timeout = 30
+
+        [encoding]
+        request = utf-8
+        stock = utf-8
+
+        [auth]
+        type = htpasswd
+        htpasswd_filename = /data/users
+        htpasswd_encryption = bcrypt
+
+        [storage]
+        type = multifilesystem
+        filesystem_folder = /data/collections
+
+        [logging]
+        mask_passwords = True
+        CFG_EOF
+        chmod 0644 /etcradicale/config
         if [ ! -s /data/users ]; then
           printf '%s' "$$ADMIN_PASSWORD" | htpasswd -B -i -c /data/users "$$ADMIN_USER"
           chmod 0600 /data/users
@@ -20,6 +43,7 @@ services:
         fi
     volumes:
       - {{index . "data_dir"}}/data:/data
+      - {{index . "data_dir"}}/etc:/etcradicale
     deploy:
       resources:
         limits:
@@ -64,7 +88,7 @@ services:
           pids: 100
     volumes:
       - {{index . "data_dir"}}/data:/data
-      - {{index . "data_dir"}}/config:/config:ro
+      - {{index . "data_dir"}}/etc:/etc/radicale:ro
     healthcheck:
       test:
         - CMD-SHELL
