@@ -1,0 +1,5 @@
+.aradeploy.yaml
+.aradeploy-secrets.yaml
+docker-compose.yml
+.env
+volumes

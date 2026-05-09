@@ -28,6 +28,17 @@ values:
   - name: timezone
     description: Timezone
     validation: timezone
+  - name: caldav_url
+    description: CalDAV server URL for the bundled caldav skill (leave empty to skip; use http://radicale:5232 if you also run the radicale template on this node)
+    default: ""
+  - name: caldav_user
+    description: CalDAV username
+    default: ""
+  - name: caldav_password
+    description: CalDAV password
+    secret: true
+    default: ""
+requires_build: true
 dependencies:
   - docker
 volumes:
@@ -57,6 +68,9 @@ post_deploy_info:
     - "  docker exec openclaw-gateway node openclaw.mjs devices approve --latest"
     - "Repeat the approve step for every new browser/device that connects."
     - "API requests authenticate with the same gateway token"
+    - "To enable the bundled caldav skill against an arastack-deployed Radicale,"
+    - "redeploy with: --set caldav_url=http://radicale:5232 --set caldav_user=admin"
+    - "  --set \"caldav_password=$(sudo aradeploy secrets radicale admin_password)\""
 routing:
   auth: optional
 requirements:
@@ -65,3 +79,4 @@ requirements:
 lint_ignore:
   - floating-image-tag    # no semver releases available
   - missing-healthcheck   # cli is an interactive TTY container
+  - secret-no-autogen     # caldav_password is provided by the operator (e.g. from `aradeploy secrets radicale admin_password`); empty by default to keep CalDAV opt-in

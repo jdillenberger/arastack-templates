@@ -1,6 +1,9 @@
 services:
   openclaw-init:
-    image: ghcr.io/openclaw/openclaw:latest
+    image: openclaw-arastack:local
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: openclaw-init
     restart: "no"
     user: "root"
@@ -29,7 +32,7 @@ services:
       - {{index . "data_dir"}}/workspace:/home/node/.openclaw/workspace
 
   openclaw-gateway:
-    image: ghcr.io/openclaw/openclaw:latest
+    image: openclaw-arastack:local
     container_name: openclaw-gateway
     restart: unless-stopped
     init: true
@@ -45,6 +48,9 @@ services:
       - TERM=xterm-256color
       - TZ={{index . "timezone"}}
       - OPENCLAW_GATEWAY_TOKEN={{index . "gateway_token"}}
+      - CALDAV_URL={{index . "caldav_url"}}
+      - CALDAV_USER={{index . "caldav_user"}}
+      - CALDAV_PASSWORD={{index . "caldav_password"}}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://127.0.0.1:18789/healthz || exit 1"]
       interval: 30s
@@ -73,7 +79,7 @@ services:
       - {{index . "network"}}
 
   openclaw-cli:
-    image: ghcr.io/openclaw/openclaw:latest
+    image: openclaw-arastack:local
     container_name: openclaw-cli
     restart: unless-stopped
     network_mode: "service:openclaw-gateway"
@@ -95,6 +101,9 @@ services:
       - TZ={{index . "timezone"}}
       - OPENCLAW_GATEWAY_TOKEN={{index . "gateway_token"}}
       - BROWSER=echo
+      - CALDAV_URL={{index . "caldav_url"}}
+      - CALDAV_USER={{index . "caldav_user"}}
+      - CALDAV_PASSWORD={{index . "caldav_password"}}
     volumes:
       - {{index . "data_dir"}}/config:/home/node/.openclaw
       - {{index . "data_dir"}}/workspace:/home/node/.openclaw/workspace
