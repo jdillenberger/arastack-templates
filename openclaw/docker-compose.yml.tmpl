@@ -101,6 +101,13 @@ services:
     image: openclaw-arastack:local
     container_name: openclaw-cli
     restart: unless-stopped
+    # Idle container that hosts interactive CLI sessions via
+    # `docker exec -it openclaw-cli openclaw chat` (or similar). Without
+    # an explicit command, the upstream image runs `openclaw gateway run`
+    # by default — which then EADDRINUSE-crashes against the real gateway,
+    # since both containers share a network namespace. Stay alive, do
+    # nothing of our own.
+    command: ["sleep", "infinity"]
     network_mode: "service:openclaw-gateway"
     stdin_open: true
     tty: true
