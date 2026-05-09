@@ -52,6 +52,10 @@ post_deploy_info:
     - "  WebSocket URL: wss://{{.routing_domain}}"
     - "  Gateway Token: {{.gateway_token}}"
     - "  Password:      leave blank (the gateway runs with --auth token)"
+    - "After clicking Connect once, the browser registers a pending pairing"
+    - "request. Approve it from the gateway host with:"
+    - "  docker exec openclaw-gateway node openclaw.mjs devices approve --latest"
+    - "Repeat the approve step for every new browser/device that connects."
     - "API requests authenticate with the same gateway token"
 routing:
   auth: optional

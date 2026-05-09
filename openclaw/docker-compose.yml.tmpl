@@ -8,12 +8,10 @@ services:
     command:
       - |
         chown -R 1000:1000 /home/node/.openclaw
-        if [ ! -f /home/node/.openclaw/openclaw.json ]; then
-          cat > /home/node/.openclaw/openclaw.json << 'CONF'
-        {"gateway":{"controlUi":{"allowedOrigins":["https://{{index . "app_name"}}-{{index . "hostname"}}.{{index . "domain"}}"]},"trustedProxies":["172.16.0.0/12","10.0.0.0/8","192.168.0.0/16"]}}
+        cat > /home/node/.openclaw/openclaw.json << 'CONF'
+        {"gateway":{"controlUi":{"allowedOrigins":[{{range $i, $u := split (index . "routing_urls") ","}}{{if $i}},{{end}}"{{$u}}"{{end}}]},"trustedProxies":["172.16.0.0/12","10.0.0.0/8","192.168.0.0/16"]}}
         CONF
-          chown 1000:1000 /home/node/.openclaw/openclaw.json
-        fi
+        chown 1000:1000 /home/node/.openclaw/openclaw.json
     security_opt:
       - no-new-privileges:true
     deploy:
