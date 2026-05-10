@@ -1,0 +1,52 @@
+name: whisper
+description: OpenAI-compatible speech-to-text and text-to-speech server (speaches / faster-whisper)
+category: ai
+version: "0.8.3"
+ports:
+  - host: 8087
+    container: 8000
+    protocol: tcp
+    description: Web UI and OpenAI-compatible API
+    value_name: web_port
+values:
+  - name: web_port
+    description: Web UI / API port (host)
+    default: "8087"
+  - name: whisper_model
+    description: Default ASR model (HuggingFace ID, e.g. Systran/faster-whisper-small or Systran/faster-whisper-large-v3)
+    default: "Systran/faster-whisper-small"
+  - name: compute_type
+    description: Inference compute type (int8 for CPU, int8_float16 for newer ARM, float16 for GPU)
+    default: "int8"
+  - name: timezone
+    description: Timezone
+    validation: timezone
+dependencies:
+  - docker
+volumes:
+  - name: cache
+    container: /home/ubuntu/.cache/huggingface
+    description: HuggingFace model cache (a few GB once models are downloaded)
+health_check:
+  url: "http://localhost:{{.web_port}}/health"
+  interval: 30s
+post_deploy_info:
+  access_url: "{{.routing_url}}"
+  notes:
+    - "Web UI (Gradio playground for transcription / translation / TTS): {{.routing_url}}"
+    - "OpenAI-compatible API base from outside: {{.routing_url}}/v1"
+    - "OpenAI-compatible API base from sibling containers on aradeploy-net: http://whisper:8000/v1"
+    - "First request for any model triggers a HuggingFace download (idle for a minute or two)."
+    - "To wire openclaw to use this for audio.transcribe:"
+    - "  docker exec -it openclaw-cli node /app/openclaw.mjs models auth login --provider openai"
+    - "  (when prompted: API key = any non-empty string, base URL = http://whisper:8000/v1)"
+    - "  Then test with: openclaw capability audio transcribe --file /tmp/sample.wav --model openai/{{.whisper_model}}"
+routing:
+  container_port: 8000
+  auth: optional
+requirements:
+  min_ram: 2G
+  min_disk: 5G
+  arch: [amd64, arm64]
+lint_ignore:
+  - missing-cap-drop-all   # speaches needs default caps for python multiprocess + cffi (faster-whisper / ctranslate2)
