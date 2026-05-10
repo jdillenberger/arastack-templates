@@ -1,6 +1,35 @@
 services:
+  whisper-init:
+    # Speaches runs as uid 1000 (`ubuntu`) inside the container. The cache
+    # volume gets created on the host owned root:root, so the container user
+    # cannot write to it and HuggingFace downloads fail with EACCES. Fix
+    # ownership before whisper boots.
+    image: busybox:1.37
+    container_name: whisper-init
+    restart: "no"
+    user: "0"
+    command: ["sh", "-c", "mkdir -p /cache/hub && chown -R 1000:1000 /cache"]
+    volumes:
+      - {{index . "data_dir"}}/cache:/cache
+    deploy:
+      resources:
+        limits:
+          memory: 32M
+          pids: 50
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    network_mode: "none"
+
   whisper:
     image: ghcr.io/speaches-ai/speaches:0.8.3-cpu
+    depends_on:
+      whisper-init:
+        condition: service_completed_successfully
     container_name: whisper
     restart: unless-stopped
     environment:

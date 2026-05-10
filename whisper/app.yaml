@@ -36,11 +36,16 @@ post_deploy_info:
     - "Web UI (Gradio playground for transcription / translation / TTS): {{.routing_url}}"
     - "OpenAI-compatible API base from outside: {{.routing_url}}/v1"
     - "OpenAI-compatible API base from sibling containers on aradeploy-net: http://whisper:8000/v1"
-    - "First request for any model triggers a HuggingFace download (idle for a minute or two)."
-    - "To wire openclaw to use this for audio.transcribe:"
-    - "  docker exec -it openclaw-cli node /app/openclaw.mjs models auth login --provider openai"
-    - "  (when prompted: API key = any non-empty string, base URL = http://whisper:8000/v1)"
-    - "  Then test with: openclaw capability audio transcribe --file /tmp/sample.wav --model openai/{{.whisper_model}}"
+    - "speaches 0.8 does NOT auto-download models on first transcribe request."
+    - "Pull the configured model once (takes a minute or two):"
+    - "  curl -k -X POST {{.routing_url}}/v1/models/{{.whisper_model}}"
+    - "Wire openclaw to use this for audio.transcribe — three pieces:"
+    - "  1. Auth profile: openclaw models auth login --provider openai (any non-empty key)"
+    - "  2. Per-provider config (paste both lines together — one config patch):"
+    - "     echo '{\"models\":{\"providers\":{\"openai\":{\"baseUrl\":\"http://whisper:8000/v1\",\"models\":[],\"request\":{\"allowPrivateNetwork\":true}}}}}' | openclaw config patch --stdin"
+    - "  3. Audio routing: echo '{\"tools\":{\"media\":{\"audio\":{\"models\":[{\"provider\":\"openai\",\"model\":\"{{.whisper_model}}\"}]}}}}' | openclaw config patch --stdin"
+    - "  Restart openclaw-gateway after the patches: docker restart openclaw-gateway openclaw-cli"
+    - "  Then: openclaw capability audio transcribe --file /tmp/sample.wav"
 routing:
   container_port: 8000
   auth: optional
@@ -50,3 +55,4 @@ requirements:
   arch: [amd64, arm64]
 lint_ignore:
   - missing-cap-drop-all   # speaches needs default caps for python multiprocess + cffi (faster-whisper / ctranslate2)
+  - missing-healthcheck    # whisper-init is a one-shot chown container
