@@ -18,7 +18,7 @@ aradeploy deploy nextcloud
 | **Productivity** | bookstack, calibre-web, docmost, excalidraw, hedgedoc, obsidian, outline, paperless-ngx, stirling-pdf, trilium, wikijs |
 | **Development** | code-server, forgejo, gitea, gitlab |
 | **Communication** | gotify, mastodon, matrix, mattermost, ntfy |
-| **Finance & PM** | actual-budget, firefly-iii, leantime, vikunja |
+| **Finance & PM** | actual-budget, firefly-iii, leantime, ocular, vikunja |
 | **Web & CMS** | ghost, wordpress |
 | **Home & Lifestyle** | home-assistant, mealie, tandoor-recipes |
 | **Networking** | netbird, wireguard |

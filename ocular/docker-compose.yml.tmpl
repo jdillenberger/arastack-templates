@@ -1,0 +1,40 @@
+services:
+  ocular:
+    image: ghcr.io/simonwep/ocular:v2
+    container_name: ocular
+    restart: unless-stopped
+    ports:
+      - "{{index . "web_port"}}:80"
+    environment:
+      - GENESIS_JWT_SECRET={{index . "jwt_secret"}}
+      - GENESIS_JWT_TOKEN_EXPIRATION={{index . "jwt_token_expiration"}}
+      - GENESIS_CREATE_USERS={{index . "admin_user"}}!:{{index . "admin_password"}}
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          pids: 200
+    volumes:
+      - {{index . "data_dir"}}/data:/data/genesis
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:80/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - {{index . "network"}}
+
+    labels:
+      - "arabackup.enable=true"
+      - "arabackup.borg.paths=data"
+networks:
+  {{index . "network"}}:
+    external: true

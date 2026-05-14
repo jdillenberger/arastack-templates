@@ -1,0 +1,52 @@
+name: ocular
+description: Fancy, simplistic, self-hosted budgeting tracker
+category: finance
+version: "v2"
+ports:
+  - host: 3030
+    container: 80
+    protocol: tcp
+    description: Web UI
+    value_name: web_port
+values:
+  - name: web_port
+    description: Web UI port
+    default: "3030"
+  - name: admin_user
+    description: Initial admin username
+    default: "admin"
+  - name: admin_password
+    description: Initial admin password
+    secret: true
+    auto_gen: password
+    user_facing: true
+  - name: jwt_secret
+    description: JWT signing secret
+    secret: true
+    auto_gen: password
+  - name: jwt_token_expiration
+    description: JWT token lifetime in minutes
+    default: "60"
+dependencies:
+  - docker
+volumes:
+  - name: data
+    container: /data/genesis
+    description: Ocular budgeting data
+health_check:
+  url: "http://localhost:{{.web_port}}"
+  interval: 30s
+backup:
+  paths:
+    - data
+routing:
+  auth: optional
+post_deploy_info:
+  access_url: "{{.routing_url}}"
+  credentials: "Username: {{.admin_user}}"
+  notes:
+    - "The initial admin account is created on first startup from GENESIS_CREATE_USERS"
+    - "Changing GENESIS_CREATE_USERS later has no effect on existing users"
+requirements:
+  min_ram: 128M
+  arch: [amd64, arm64]
